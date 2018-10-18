@@ -2,6 +2,7 @@ package csym
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/mefistotelis/sym"
 	"github.com/mefistotelis/sym/csym/c"
@@ -130,6 +131,20 @@ func (p *Parser) parseLineNumbers(addr uint32, body *sym.SetSLD2, syms []*sym.Sy
 		}
 	}
 	panic("unreachable")
+}
+
+// emptyFunc creates an empty/dummy function declaration when real one is missing.
+func (p *Parser) emptyFunc(name string, addr uint32) *c.FuncDecl {
+	f := &c.FuncDecl{
+		Addr: addr,
+		Var: c.Var{
+			Name: name,
+			Type: &c.FuncType{RetType: c.Void},
+		},
+	}
+	p.curOverlay.Funcs = append(p.curOverlay.Funcs, f)
+	p.curOverlay.funcNames[name] = f
+	return f
 }
 
 // parseFunc parses a function sequence of symbols.
@@ -296,7 +311,8 @@ func findFunc(p *Parser, name string, addr uint32) (*c.FuncDecl, *c.FuncType) {
 	name = validName(name)
 	f, ok := p.curOverlay.funcNames[name]
 	if !ok {
-		panic(fmt.Errorf("unable to locate function %q", name))
+		f = p.emptyFunc(name, addr)
+		log.Printf("unable to locate function %q, created void", name)
 	}
 	if f.Addr != addr {
 		name = UniqueName(name, addr)
