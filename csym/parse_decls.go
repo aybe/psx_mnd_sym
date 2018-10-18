@@ -30,7 +30,7 @@ func (p *Parser) ParseDecls(syms []*sym.Symbol) {
 			case sym.ClassEXT, sym.ClassSTAT:
 				t := p.parseType(body.Type, nil, "")
 				p.parseGlobalDecl(s.Hdr.Value, body.Size, body.Class, t, body.Name)
-			case sym.ClassMOS, sym.ClassSTRTAG, sym.ClassMOU, sym.ClassUNTAG, sym.ClassTPDEF, sym.ClassENTAG, sym.ClassMOE, sym.ClassFIELD:
+			case sym.ClassMOS, sym.ClassSTRTAG, sym.ClassMOU, sym.ClassUNTAG, sym.ClassTPDEF, sym.ClassENTAG, sym.ClassMOE, sym.ClassFIELD, sym.Class103:
 				// nothing to do.
 			default:
 				panic(fmt.Sprintf("support for symbol class %q not yet implemented", body.Class))
