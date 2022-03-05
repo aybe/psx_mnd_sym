@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sanctuary/sym"
-	"github.com/sanctuary/sym/csym/c"
+	"github.com/mefistotelis/sym"
+	"github.com/mefistotelis/sym/csym/c"
 )
 
 // ParseTypes parses the SYM types into the equivalent C types.

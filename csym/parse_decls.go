@@ -3,8 +3,8 @@ package csym
 import (
 	"fmt"
 
-	"github.com/sanctuary/sym"
-	"github.com/sanctuary/sym/csym/c"
+	"github.com/mefistotelis/sym"
+	"github.com/mefistotelis/sym/csym/c"
 )
 
 // ParseDecls parses the symbols into the equivalent C declarations.

@@ -12,9 +12,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/rickypai/natsort"
-	"github.com/sanctuary/sym"
-	"github.com/sanctuary/sym/csym"
-	"github.com/sanctuary/sym/csym/c"
+	"github.com/mefistotelis/sym"
+	"github.com/mefistotelis/sym/csym"
+	"github.com/mefistotelis/sym/csym/c"
 )
 
 // usage prints usage information.

@@ -1,19 +1,20 @@
 # sym
 
-[![Build Status](https://travis-ci.org/sanctuary/sym.svg)](https://travis-ci.org/sanctuary/sym)
-[![GoDoc](https://godoc.org/github.com/sanctuary/sym?status.svg)](https://godoc.org/github.com/sanctuary/sym)
+[![Build Status](https://travis-ci.org/mefistotelis/sym.svg)](https://travis-ci.org/mefistotelis/sym)
+[![GoDoc](https://godoc.org/github.com/mefistotelis/sym?status.svg)](https://godoc.org/github.com/mefistotelis/sym)
 
 Parse Playstation 1 symbol files (`*.SYM`).
 
 ## Installation
 
 ```bash
-go get -u github.com/sanctuary/sym/cmd/sym_dump
+go get -u github.com/mefistotelis/sym/cmd/sym_dump
 ```
 
 ## Usage
 
-The default output of `sym_dump` is in Psy-Q format and is identical to the `DUMPSYM.EXE` tool of the [Psy-Q SDK](http://www.psxdev.net/help/psyq_install.html).
+The default output of `sym_dump` is in Psy-Q format and is identical to the
+`DUMPSYM.EXE` tool of the [Psy-Q SDK](http://www.psxdev.net/help/psyq_install.html).
 
 ```bash
 sym_dump DIABPSX.SYM
