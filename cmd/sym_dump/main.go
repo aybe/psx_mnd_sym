@@ -1,4 +1,4 @@
-// The sym_dump tool converts Playstation 1 SYM files to C headers (*.sym ->
+// The sym_dump tool converts Playstation 1 MND/SYM files to C headers (*.sym ->
 // *.h) and scripts for importing symbol information into IDA.
 package main
 
@@ -20,7 +20,7 @@ import (
 // usage prints usage information.
 func usage() {
 	const use = `
-Convert Playstation 1 SYM files to C headers (*.sym -> *.h) and scripts for importing symbol information into IDA.
+Convert Playstation 1 MND/SYM files to C headers (*.sym -> *.h) and scripts for importing symbol information into IDA.
 `
 	fmt.Println(use[1:])
 	flag.PrintDefaults()
@@ -44,6 +44,8 @@ func main() {
 		splitSrc bool
 		// Output C types.
 		outputTypes bool
+		// Verbosity level.
+		opts sym.Options
 	)
 	flag.BoolVar(&outputC, "c", false, "output C types and declarations")
 	flag.StringVar(&outputDir, "dir", dumpDir, "output directory")
@@ -51,6 +53,7 @@ func main() {
 	flag.BoolVar(&merge, "merge", false, "merge SYM files")
 	flag.BoolVar(&splitSrc, "src", false, "split output into source files")
 	flag.BoolVar(&outputTypes, "types", false, "output C types")
+	flag.BoolVar(&opts.Verbose, "v", false, "show verbose messages")
 	flag.Usage = usage
 	flag.Parse()
 	if merge && outputIDA {
@@ -68,7 +71,7 @@ func main() {
 		switch {
 		case outputC, outputIDA:
 			// Parse C types and declarations.
-			p := csym.NewParser()
+			p := csym.NewParser(&opts)
 			if merge {
 				ps = append(ps, p)
 			}
@@ -82,7 +85,7 @@ func main() {
 			}
 		case outputTypes:
 			// Parse C types.
-			p := csym.NewParser()
+			p := csym.NewParser(&opts)
 			if merge {
 				ps = append(ps, p)
 			}
@@ -103,7 +106,7 @@ func main() {
 	if merge {
 		skipAddrDiff := true
 		skipLineDiff := true
-		p := pruneDuplicates(ps, skipAddrDiff, skipLineDiff)
+		p := pruneDuplicates(ps, skipAddrDiff, skipLineDiff, &opts)
 		if err := dump(p, outputDir, outputC, outputTypes, outputIDA, splitSrc, merge); err != nil {
 			log.Fatalf("%+v", err)
 		}
@@ -112,8 +115,8 @@ func main() {
 
 // pruneDuplicates prunes duplicates declarations of the parser, optionally
 // ignoring differences in address.
-func pruneDuplicates(ps []*csym.Parser, skipAddrDiff, skipLineDiff bool) *csym.Parser {
-	dst := csym.NewParser()
+func pruneDuplicates(ps []*csym.Parser, skipAddrDiff, skipLineDiff bool, opts *sym.Options) *csym.Parser {
+	dst := csym.NewParser(opts)
 	enumPresent := make(map[string]bool)
 	structPresent := make(map[string]bool)
 	unionPresent := make(map[string]bool)

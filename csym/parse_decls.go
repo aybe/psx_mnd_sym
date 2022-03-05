@@ -10,6 +10,7 @@ import (
 
 // ParseDecls parses the symbols into the equivalent C declarations.
 func (p *Parser) ParseDecls(syms []*sym.Symbol) {
+	if p.opts.Verbose { fmt.Printf("Parsing %d declarations...\n", len(syms)) }
 	for i := 0; i < len(syms); i++ {
 		s := syms[i]
 		switch body := s.Body.(type) {
@@ -57,6 +58,7 @@ func (p *Parser) ParseDecls(syms []*sym.Symbol) {
 			panic(fmt.Sprintf("support for symbol type %T not yet implemented", body))
 		}
 	}
+	if p.opts.Verbose { fmt.Printf("Created %d functions, %d global variables\n", len(p.curOverlay.Funcs), len(p.curOverlay.Vars)) }
 }
 
 // parseSymbol parses a symbol and its associated address.

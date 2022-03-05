@@ -12,6 +12,7 @@ import (
 // ParseTypes parses the SYM types into the equivalent C types.
 func (p *Parser) ParseTypes(syms []*sym.Symbol) {
 	p.initTaggedTypes(syms)
+	if p.opts.Verbose { fmt.Printf("Parsing %d types...\n", len(syms)) }
 	// Parse symbols.
 	for i := 0; i < len(syms); i++ {
 		s := syms[i]
@@ -39,6 +40,7 @@ func (p *Parser) ParseTypes(syms []*sym.Symbol) {
 			}
 		}
 	}
+	if p.opts.Verbose { fmt.Printf("Created %d structs, %d enums, %d unions, %d types.\n", len(p.Structs), len(p.Enums), len(p.Unions), len(p.Types)) }
 }
 
 func (p *Parser) emptyStruct(tag string, size uint32) *c.StructType {
@@ -53,6 +55,7 @@ func (p *Parser) emptyStruct(tag string, size uint32) *c.StructType {
 
 // initTaggedTypes adds scaffolding types for structs, unions and enums.
 func (p *Parser) initTaggedTypes(syms []*sym.Symbol) {
+	if p.opts.Verbose { fmt.Printf("Initializing tagged types...\n") }
 	// Bool used for NULL type.
 	boolDef := &c.VarDecl{
 		Class: c.Typedef,

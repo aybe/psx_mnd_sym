@@ -2,6 +2,7 @@
 package csym
 
 import (
+	"github.com/mefistotelis/psx_mnd_sym"
 	"github.com/mefistotelis/psx_mnd_sym/csym/c"
 )
 
@@ -38,10 +39,13 @@ type Parser struct {
 
 	// Current overlay.
 	curOverlay *Overlay
+
+	// Option switches.
+	opts *sym.Options
 }
 
 // NewParser returns a new parser.
-func NewParser() *Parser {
+func NewParser(opts *sym.Options) *Parser {
 	overlay := &Overlay{
 		varNames:  make(map[string]*c.VarDecl),
 		funcNames: make(map[string]*c.FuncDecl),
@@ -55,6 +59,7 @@ func NewParser() *Parser {
 		Overlay:     overlay,
 		overlayIDs:  make(map[uint32]*Overlay),
 		curOverlay:  overlay,
+		opts:        opts,
 	}
 }
 
