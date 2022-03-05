@@ -1,9 +1,9 @@
-# sym
+# PSX MND/SYM parser in Golang
 
 [![Build Status](https://api.travis-ci.com/mefistotelis/psx_mnd_sym.svg)](https://app.travis-ci.com/github/mefistotelis/psx_mnd_sym)
 [![GoDoc](https://godoc.org/github.com/mefistotelis/psx_mnd_sym?status.svg)](https://godoc.org/github.com/mefistotelis/psx_mnd_sym)
 
-Parse Playstation 1 symbol files (`*.SYM`).
+Parse Playstation 1 symbol files (`*.SYM` files with `MND\1` header).
 
 ## Installation
 
