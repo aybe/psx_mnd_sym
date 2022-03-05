@@ -2,6 +2,7 @@ package csym
 
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/mefistotelis/sym"
@@ -38,6 +39,16 @@ func (p *Parser) ParseTypes(syms []*sym.Symbol) {
 			}
 		}
 	}
+}
+
+func (p *Parser) emptyStruct(tag string, size uint32) *c.StructType {
+	emptyType := &c.StructType{
+		Tag: tag,
+		Size: size,
+	}
+	p.Structs[tag] = emptyType
+	p.StructTags = append(p.StructTags, tag)
+	return emptyType
 }
 
 // initTaggedTypes adds scaffolding types for structs, unions and enums.
@@ -286,7 +297,7 @@ func findStruct(p *Parser, tag string, size uint32) *c.StructType {
 	for i := 0; ; i++ {
 		t, ok := p.Structs[newTag]
 		if !ok {
-			panic(fmt.Errorf("unable to locate struct %q", tag))
+			panic(fmt.Errorf("unable to locate struct %q size %d", tag, size))
 		}
 		if t.Size == size && len(t.Fields) == 0 {
 			return t
@@ -350,7 +361,8 @@ func (p *Parser) parseBase(base sym.Base, tag string) c.Type {
 	case sym.BaseStruct:
 		t, ok := p.Structs[tag]
 		if !ok {
-			panic(fmt.Errorf("unable to locate struct %q", tag))
+			t = p.emptyStruct(tag, 0)
+			log.Printf("unable to locate struct %q, created empty", tag)
 		}
 		return t
 	case sym.BaseUnion:
