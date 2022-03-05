@@ -1,4 +1,4 @@
-module github.com/mefistotelis/sym
+module github.com/mefistotelis/psx_mnd_sym
 
 require (
 	github.com/lunixbochs/struc v0.0.0-20180408203800-02e4c2afbb2a

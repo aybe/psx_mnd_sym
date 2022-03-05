@@ -10,8 +10,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/rickypai/natsort"
-	"github.com/mefistotelis/sym/csym"
-	"github.com/mefistotelis/sym/csym/c"
+	"github.com/mefistotelis/psx_mnd_sym/csym"
+	"github.com/mefistotelis/psx_mnd_sym/csym/c"
 )
 
 // --- [ Type definitions ] ----------------------------------------------------

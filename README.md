@@ -1,14 +1,14 @@
 # sym
 
-[![Build Status](https://travis-ci.org/mefistotelis/sym.svg)](https://travis-ci.org/mefistotelis/sym)
-[![GoDoc](https://godoc.org/github.com/mefistotelis/sym?status.svg)](https://godoc.org/github.com/mefistotelis/sym)
+[![Build Status](https://api.travis-ci.com/mefistotelis/psx_mnd_sym.svg)](https://app.travis-ci.com/github/mefistotelis/psx_mnd_sym)
+[![GoDoc](https://godoc.org/github.com/mefistotelis/psx_mnd_sym?status.svg)](https://godoc.org/github.com/mefistotelis/psx_mnd_sym)
 
 Parse Playstation 1 symbol files (`*.SYM`).
 
 ## Installation
 
 ```bash
-go get -u github.com/mefistotelis/sym/cmd/sym_dump
+go get -u github.com/mefistotelis/psx_mnd_sym/cmd/sym_dump
 ```
 
 ## Usage

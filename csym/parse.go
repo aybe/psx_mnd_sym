@@ -2,7 +2,7 @@
 package csym
 
 import (
-	"github.com/mefistotelis/sym/csym/c"
+	"github.com/mefistotelis/psx_mnd_sym/csym/c"
 )
 
 // Parser tracks type information used for parsing.

@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/mefistotelis/sym"
+	"github.com/mefistotelis/psx_mnd_sym"
 )
 
 func TestParseFile(t *testing.T) {

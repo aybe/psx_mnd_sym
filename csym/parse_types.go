@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/mefistotelis/sym"
-	"github.com/mefistotelis/sym/csym/c"
+	"github.com/mefistotelis/psx_mnd_sym"
+	"github.com/mefistotelis/psx_mnd_sym/csym/c"
 )
 
 // ParseTypes parses the SYM types into the equivalent C types.
