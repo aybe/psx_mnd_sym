@@ -30,3 +30,21 @@ sym_dump DIABPSX.SYM
 # 000049: $80139bf8 overlay length $0001ec70 id $e
 # 000056: $00000000 94 Def class TPDEF type UCHAR size 0 name u_char
 ```
+
+The tool can also dump C headers with type definitions, variable and function declarations.
+
+```bash
+sym_dump -c DIABPSX.SYM
+```
+
+IDA Python scripts can be created as well.
+
+```bash
+sym_dump -ida DIABPSX.SYM
+```
+
+More options can be discovered by triggering help screen.
+
+```bash
+sym_dump --help
+```
