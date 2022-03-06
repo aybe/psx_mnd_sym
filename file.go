@@ -20,6 +20,8 @@ type File struct {
 	Hdr *FileHeader
 	// Symbols.
 	Syms []*Symbol
+	// Parser options.
+	Opts *Options
 }
 
 // String returns the string representation of the symbol file.
@@ -86,22 +88,23 @@ Target unit %d`
 }
 
 // ParseFile parses the given PS1 symbol file.
-func ParseFile(path string) (*File, error) {
+func ParseFile(path string, opts *Options) (*File, error) {
+	if opts.Verbose { fmt.Printf("Opening '%s'...\n", path) }
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 	defer f.Close()
-	return Parse(f)
+	return Parse(f, opts)
 }
 
 // ParseBytes parses the given PS1 symbol file, reading from b.
-func ParseBytes(b []byte) (*File, error) {
-	return Parse(bytes.NewReader(b))
+func ParseBytes(b []byte, opts *Options) (*File, error) {
+	return Parse(bytes.NewReader(b), opts)
 }
 
 // Parse parses the given PS1 symbol file, reading from r.
-func Parse(r io.Reader) (*File, error) {
+func Parse(r io.Reader, opts *Options) (*File, error) {
 	// Parse file header.
 	f := &File{}
 	br := bufio.NewReader(r)
@@ -110,7 +113,9 @@ func Parse(r io.Reader) (*File, error) {
 		return nil, errors.WithStack(err)
 	}
 	f.Hdr = hdr
+	f.Opts = opts
 
+	if f.Opts.Verbose { fmt.Printf("Parsing flattened tags...\n") }
 	// Parse symbols.
 	for {
 		sym, err := parseSymbol(br)
@@ -122,6 +127,7 @@ func Parse(r io.Reader) (*File, error) {
 		}
 		f.Syms = append(f.Syms, sym)
 	}
+	if f.Opts.Verbose { fmt.Printf("Created %d symbol tags.\n", len(f.Syms)) }
 	return f, nil
 }
 

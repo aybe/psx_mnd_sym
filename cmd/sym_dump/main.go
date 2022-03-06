@@ -64,7 +64,7 @@ func main() {
 	var ps []*csym.Parser
 	for _, path := range flag.Args() {
 		// Parse SYM file.
-		f, err := sym.ParseFile(path)
+		f, err := sym.ParseFile(path, &opts)
 		if err != nil {
 			log.Fatalf("%+v", err)
 		}

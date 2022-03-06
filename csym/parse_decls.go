@@ -10,7 +10,7 @@ import (
 
 // ParseDecls parses the symbols into the equivalent C declarations.
 func (p *Parser) ParseDecls(syms []*sym.Symbol) {
-	if p.opts.Verbose { fmt.Printf("Parsing %d declarations...\n", len(syms)) }
+	if p.opts.Verbose { fmt.Printf("Parsing %d symbol tags for declarations...\n", len(syms)) }
 	for i := 0; i < len(syms); i++ {
 		s := syms[i]
 		switch body := s.Body.(type) {

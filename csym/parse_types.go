@@ -12,7 +12,7 @@ import (
 // ParseTypes parses the SYM types into the equivalent C types.
 func (p *Parser) ParseTypes(syms []*sym.Symbol) {
 	p.initTaggedTypes(syms)
-	if p.opts.Verbose { fmt.Printf("Parsing %d types...\n", len(syms)) }
+	if p.opts.Verbose { fmt.Printf("Parsing %d symbol tags for types...\n", len(syms)) }
 	// Parse symbols.
 	for i := 0; i < len(syms); i++ {
 		s := syms[i]
@@ -38,6 +38,8 @@ func (p *Parser) ParseTypes(syms []*sym.Symbol) {
 				// TODO: Replace with parseDef?
 				p.parseTypedef(body.Type, body.Dims, body.Tag, body.Name)
 			}
+		// We are not using 'default:', here nor in body.Class switches; that is because
+		// such verification is made when parsing declarations (`parse_decls.go`)
 		}
 	}
 	if p.opts.Verbose { fmt.Printf("Created %d structs, %d enums, %d unions, %d types.\n", len(p.Structs), len(p.Enums), len(p.Unions), len(p.Types)) }
