@@ -22,7 +22,9 @@ func (p *Parser) ParseDecls(syms []*sym.Symbol) {
 			n := p.parseLineNumbers(s.Hdr.Value, body, syms[i+1:])
 			i += n
 		case *sym.EndSLD:
-			// nothing to do.
+			// While rarely, a group of SLD entries might end without even starting.
+			// So while most SLD entry types are handled in `parseLineNumbers()`,
+			// this one should be allowed on this level. Nothing to do if it is found.
 		case *sym.FuncStart:
 			n := p.parseFunc(s.Hdr.Value, body, syms[i+1:])
 			i += n
