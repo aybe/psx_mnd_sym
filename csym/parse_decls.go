@@ -280,10 +280,6 @@ func (p *Parser) parseGlobalDecl(addr, size uint32, class sym.Class, t c.Type, n
 		p.curOverlay.funcNames[name] = f
 		return
 	}
-	// Make name unique if already present.
-	if _, ok := p.curOverlay.varNames[name]; ok {
-		name = UniqueName(name, addr)
-	}
 	v := &c.VarDecl{
 		Addr:  addr,
 		Size:  size,
@@ -294,7 +290,7 @@ func (p *Parser) parseGlobalDecl(addr, size uint32, class sym.Class, t c.Type, n
 		},
 	}
 	p.curOverlay.Vars = append(p.curOverlay.Vars, v)
-	p.curOverlay.varNames[name] = v
+	p.curOverlay.varNames[name] = append(p.curOverlay.varNames[name], v)
 }
 
 // parseOverlay parses an overlay symbol.
@@ -303,7 +299,7 @@ func (p *Parser) parseOverlay(addr uint32, body *sym.Overlay) {
 		Addr:      addr,
 		ID:        body.ID,
 		Length:    body.Length,
-		varNames:  make(map[string]*c.VarDecl),
+		varNames:  make(map[string][]*c.VarDecl),
 		funcNames: make(map[string]*c.FuncDecl),
 	}
 	p.Overlays = append(p.Overlays, overlay)

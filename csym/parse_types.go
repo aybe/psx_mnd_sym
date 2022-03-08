@@ -297,6 +297,7 @@ func uniqueEnum(name string, members map[string]bool) string {
 }
 
 // findStruct returns the struct with the given tag and size.
+// It selects the struct which has no fields defined, yet.
 func findStruct(p *Parser, tag string, size uint32) *c.StructType {
 	newTag := tag
 	for i := 0; ; i++ {
@@ -312,6 +313,7 @@ func findStruct(p *Parser, tag string, size uint32) *c.StructType {
 }
 
 // findUnion returns the union with the given tag and size.
+// It selects the union which has no fields defined, yet.
 func findUnion(p *Parser, tag string, size uint32) *c.UnionType {
 	newTag := tag
 	for i := 0; ; i++ {
@@ -327,6 +329,7 @@ func findUnion(p *Parser, tag string, size uint32) *c.UnionType {
 }
 
 // findEnum returns the enum with the given tag.
+// It selects the enum which has no members defined, yet.
 func findEnum(p *Parser, tag string) *c.EnumType {
 	newTag := tag
 	for i := 0; ; i++ {

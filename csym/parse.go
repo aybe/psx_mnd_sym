@@ -47,7 +47,7 @@ type Parser struct {
 // NewParser returns a new parser.
 func NewParser(opts *sym.Options) *Parser {
 	overlay := &Overlay{
-		varNames:  make(map[string]*c.VarDecl),
+		varNames:  make(map[string][]*c.VarDecl),
 		funcNames: make(map[string]*c.FuncDecl),
 	}
 	return &Parser{
@@ -77,7 +77,7 @@ type Overlay struct {
 	// Function delcarations.
 	Funcs []*c.FuncDecl
 	// varNames maps from variable name to variable declaration.
-	varNames map[string]*c.VarDecl
+	varNames map[string][]*c.VarDecl
 	// funcNames maps from function name to function declaration.
 	funcNames map[string]*c.FuncDecl
 
