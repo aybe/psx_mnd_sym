@@ -24,9 +24,17 @@ func (p *Parser) MakeNamesUnique() {
 // makeNamesUniqueInOverlay goes through parsed symbols and renames duplicate ones.
 func (p *Parser) makeNamesUniqueInOverlay(overlay *Overlay) {
 	for _, variables := range overlay.varNames {
-		if  len(variables) < 2 { continue }
+		// Do not rename extern declarations, only real variables
+		real_len := 0
 		for i := 0; i < len(variables); i++ {
 			v := variables[i]
+			if v.Class == c.Extern { continue }
+			real_len++
+		}
+		if  real_len < 2 { continue }
+		for i := 0; i < len(variables); i++ {
+			v := variables[i]
+			if v.Class == c.Extern { continue }
 			v.Var.Name = uniqueVarName(overlay, v)
 		}
 	}
