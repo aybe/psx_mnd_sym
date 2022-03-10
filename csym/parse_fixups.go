@@ -14,15 +14,17 @@ import (
 func (p *Parser) MakeNamesUnique() {
 	if p.opts.Verbose { fmt.Printf("Making names unique...\n") }
 	// Default overlay
-	p.makeNamesUniqueInOverlay(p.Overlay)
+	p.makeVarNamesUniqueInOverlay(p.Overlay)
+	p.makeFuncNamesUniqueInOverlay(p.Overlay)
 	// Other overlays
 	for _, overlay := range p.Overlays {
-		p.makeNamesUniqueInOverlay(overlay)
+		p.makeVarNamesUniqueInOverlay(overlay)
+		p.makeFuncNamesUniqueInOverlay(overlay)
 	}
 }
 
-// makeNamesUniqueInOverlay goes through parsed symbols and renames duplicate ones.
-func (p *Parser) makeNamesUniqueInOverlay(overlay *Overlay) {
+// makeVarNamesUniqueInOverlay goes through parsed symbols and renames duplicate ones.
+func (p *Parser) makeVarNamesUniqueInOverlay(overlay *Overlay) {
 	for _, variables := range overlay.varNames {
 		// Do not rename extern declarations, only real variables
 		real_len := 0
@@ -40,13 +42,25 @@ func (p *Parser) makeNamesUniqueInOverlay(overlay *Overlay) {
 	}
 }
 
-// uniqueVarName returns a unique name for a variable declaration
-func uniqueVarName(overlay *Overlay, v *c.VarDecl) string {
-	variables, ok := overlay.varNames[v.Var.Name]
-	if ok && len(variables) > 1 {
-		return fmt.Sprintf("%s_addr_%08X", v.Var.Name, v.Addr)
+// makeFuncNamesUniqueInOverlay goes through parsed symbols and renames duplicate ones.
+func (p *Parser) makeFuncNamesUniqueInOverlay(overlay *Overlay) {
+	for _, funcs := range overlay.funcNames {
+		// Do not rename extern declarations
+		real_len := len(funcs)
+		if  real_len < 2 { continue }
+		for i := 0; i < len(funcs); i++ {
+			f := funcs[i]
+			f.Var.Name = uniqueFuncName(overlay, f)
+		}
 	}
-	return v.Var.Name
 }
 
+// uniqueVarName returns a unique name for a variable declaration
+func uniqueVarName(overlay *Overlay, v *c.VarDecl) string {
+	return fmt.Sprintf("%s_addr_%08X", v.Var.Name, v.Addr)
+}
 
+// uniqueFuncName returns a unique name for a variable declaration
+func uniqueFuncName(overlay *Overlay, f *c.FuncDecl) string {
+	return fmt.Sprintf("%s_addr_%08X", f.Var.Name, f.Addr)
+}

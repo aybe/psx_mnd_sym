@@ -149,7 +149,7 @@ func (p *Parser) emptyFunc(name string, addr uint32) *c.FuncDecl {
 		},
 	}
 	p.curOverlay.Funcs = append(p.curOverlay.Funcs, f)
-	p.curOverlay.funcNames[name] = f
+	p.curOverlay.funcNames[name] = append(p.curOverlay.funcNames[name], f)
 	return f
 }
 
@@ -264,10 +264,6 @@ func (p *Parser) parseLocalDecl(addr, size uint32, class sym.Class, t c.Type, na
 func (p *Parser) parseGlobalDecl(addr, size uint32, class sym.Class, t c.Type, name string) {
 	name = validName(name)
 	if _, ok := t.(*c.FuncType); ok {
-		// Make name unique if already present.
-		if _, ok := p.curOverlay.funcNames[name]; ok {
-			name = UniqueName(name, addr)
-		}
 		f := &c.FuncDecl{
 			Addr: addr,
 			Size: size,
@@ -277,7 +273,7 @@ func (p *Parser) parseGlobalDecl(addr, size uint32, class sym.Class, t c.Type, n
 			},
 		}
 		p.curOverlay.Funcs = append(p.curOverlay.Funcs, f)
-		p.curOverlay.funcNames[name] = f
+		p.curOverlay.funcNames[name] = append(p.curOverlay.funcNames[name], f)
 		return
 	}
 	v := &c.VarDecl{
@@ -300,7 +296,7 @@ func (p *Parser) parseOverlay(addr uint32, body *sym.Overlay) {
 		ID:        body.ID,
 		Length:    body.Length,
 		varNames:  make(map[string][]*c.VarDecl),
-		funcNames: make(map[string]*c.FuncDecl),
+		funcNames: make(map[string][]*c.FuncDecl),
 	}
 	p.Overlays = append(p.Overlays, overlay)
 	p.overlayIDs[overlay.ID] = overlay
@@ -311,17 +307,24 @@ func (p *Parser) parseOverlay(addr uint32, body *sym.Overlay) {
 // findFunc returns the function with the given name and address.
 func findFunc(p *Parser, name string, addr uint32) (*c.FuncDecl, *c.FuncType) {
 	name = validName(name)
-	f, ok := p.curOverlay.funcNames[name]
-	if !ok {
+	var f *c.FuncDecl = nil
+	nameExists := false
+	funcs, ok := p.curOverlay.funcNames[name]
+	if ok {
+		nameExists = len(funcs) > 0
+		for i := 0; i < len(funcs); i++ {
+			tf := funcs[i]
+			if tf.Addr != addr { continue }
+			if f != nil { continue }
+			f = tf
+		}
+	}
+	if f == nil {
+		if nameExists {
+			name = UniqueName(name, addr)
+		}
 		f = p.emptyFunc(name, addr)
 		log.Printf("unable to locate function %q, created void", name)
-	}
-	if f.Addr != addr {
-		name = UniqueName(name, addr)
-		f, ok = p.curOverlay.funcNames[name]
-		if !ok {
-			panic(fmt.Errorf("unable to locate function %q", name))
-		}
 	}
 	funcType, ok := f.Type.(*c.FuncType)
 	if !ok {

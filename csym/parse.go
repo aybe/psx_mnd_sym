@@ -48,7 +48,7 @@ type Parser struct {
 func NewParser(opts *sym.Options) *Parser {
 	overlay := &Overlay{
 		varNames:  make(map[string][]*c.VarDecl),
-		funcNames: make(map[string]*c.FuncDecl),
+		funcNames: make(map[string][]*c.FuncDecl),
 	}
 	return &Parser{
 		Structs:     make(map[string]*c.StructType),
@@ -79,7 +79,7 @@ type Overlay struct {
 	// varNames maps from variable name to variable declaration.
 	varNames map[string][]*c.VarDecl
 	// funcNames maps from function name to function declaration.
-	funcNames map[string]*c.FuncDecl
+	funcNames map[string][]*c.FuncDecl
 
 	// Symbols.
 	Symbols []*Symbol
