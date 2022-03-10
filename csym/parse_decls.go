@@ -320,10 +320,10 @@ func findFunc(p *Parser, name string, addr uint32) (*c.FuncDecl, *c.FuncType) {
 		}
 	}
 	if f == nil {
-		if nameExists {
-			name = UniqueName(name, addr)
-		}
 		f = p.emptyFunc(name, addr)
+		if nameExists {
+			f.Var.Name = UniqueFuncName(p.curOverlay, f)
+		}
 		log.Printf("unable to locate function %q, created void", name)
 	}
 	funcType, ok := f.Type.(*c.FuncType)
@@ -331,11 +331,6 @@ func findFunc(p *Parser, name string, addr uint32) (*c.FuncDecl, *c.FuncType) {
 		panic(fmt.Errorf("invalid function type; expected *c.FuncType, got %T", f.Type))
 	}
 	return f, funcType
-}
-
-// UniqueName returns a unique name based on the given name and address.
-func UniqueName(name string, addr uint32) string {
-	return fmt.Sprintf("%s_addr_%08X", name, addr)
 }
 
 // parseClass parses the symbol class into an equivalent C storage class.

@@ -37,7 +37,7 @@ func (p *Parser) makeVarNamesUniqueInOverlay(overlay *Overlay) {
 		for i := 0; i < len(variables); i++ {
 			v := variables[i]
 			if v.Class == c.Extern { continue }
-			v.Var.Name = uniqueVarName(overlay, v)
+			v.Var.Name = UniqueVarName(overlay, v)
 		}
 	}
 }
@@ -50,17 +50,22 @@ func (p *Parser) makeFuncNamesUniqueInOverlay(overlay *Overlay) {
 		if  real_len < 2 { continue }
 		for i := 0; i < len(funcs); i++ {
 			f := funcs[i]
-			f.Var.Name = uniqueFuncName(overlay, f)
+			f.Var.Name = UniqueFuncName(overlay, f)
 		}
 	}
 }
 
-// uniqueVarName returns a unique name for a variable declaration
-func uniqueVarName(overlay *Overlay, v *c.VarDecl) string {
+// UniqueName returns a unique name based on the given name and address.
+func UniqueName(name string, addr uint32) string {
+	return fmt.Sprintf("%s_addr_%08X", name, addr)
+}
+
+// UniqueVarName returns a unique name for a variable declaration
+func UniqueVarName(overlay *Overlay, v *c.VarDecl) string {
 	return fmt.Sprintf("%s_addr_%08X", v.Var.Name, v.Addr)
 }
 
-// uniqueFuncName returns a unique name for a variable declaration
-func uniqueFuncName(overlay *Overlay, f *c.FuncDecl) string {
+// UniqueFuncName returns a unique name for a variable declaration
+func UniqueFuncName(overlay *Overlay, f *c.FuncDecl) string {
 	return fmt.Sprintf("%s_addr_%08X", f.Var.Name, f.Addr)
 }
