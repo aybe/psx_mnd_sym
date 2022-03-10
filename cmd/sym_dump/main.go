@@ -77,6 +77,7 @@ func main() {
 			}
 			p.ParseTypes(f.Syms)
 			p.ParseDecls(f.Syms)
+			p.MakeNamesUnique()
 			// Output once for each files if not in merge mode.
 			if !merge {
 				if err := dump(p, outputDir, outputC, outputTypes, outputIDA, splitSrc, merge); err != nil {
