@@ -42,7 +42,10 @@ func (p *Parser) ParseTypes(syms []*sym.Symbol) {
 		// such verification is made when parsing declarations (`parse_decls.go`)
 		}
 	}
-	if p.opts.Verbose { fmt.Printf("Created %d structs, %d enums, %d unions, %d types.\n", len(p.Structs), len(p.Enums), len(p.Unions), len(p.Types)) }
+	if p.opts.Verbose {
+		fmt.Printf("Created %d structs, %d enums, %d unions, %d types.\n",
+			len(p.Structs), len(p.Enums), len(p.Unions), len(p.Types))
+	}
 }
 
 func (p *Parser) emptyStruct(tag string, size uint32) *c.StructType {

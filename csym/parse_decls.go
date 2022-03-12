@@ -322,7 +322,7 @@ func findFunc(p *Parser, name string, addr uint32) (*c.FuncDecl, *c.FuncType) {
 	if f == nil {
 		f = p.emptyFunc(name, addr)
 		if nameExists {
-			f.Var.Name = UniqueFuncName(p.curOverlay, f)
+			f.Var.Name = UniqueFuncName(p.curOverlay.funcNames, f)
 		}
 		log.Printf("unable to locate function %q, created void", name)
 	}

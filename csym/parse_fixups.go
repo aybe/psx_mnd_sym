@@ -7,7 +7,6 @@ import (
 )
 
 //TODO make unique names of types
-//TODO make unique names of functions
 //TODO remove duplicate items
 
 // MakeNamesUnique goes through parsed symbols and renames duplicate ones.
@@ -37,7 +36,7 @@ func (p *Parser) makeVarNamesUniqueInOverlay(overlay *Overlay) {
 		for i := 0; i < len(variables); i++ {
 			v := variables[i]
 			if v.Class == c.Extern { continue }
-			v.Var.Name = UniqueVarName(overlay, v)
+			v.Var.Name = UniqueVarName(overlay.varNames, v)
 		}
 	}
 }
@@ -50,7 +49,7 @@ func (p *Parser) makeFuncNamesUniqueInOverlay(overlay *Overlay) {
 		if  real_len < 2 { continue }
 		for i := 0; i < len(funcs); i++ {
 			f := funcs[i]
-			f.Var.Name = UniqueFuncName(overlay, f)
+			f.Var.Name = UniqueFuncName(overlay.funcNames, f)
 		}
 	}
 }
@@ -60,12 +59,47 @@ func UniqueName(name string, addr uint32) string {
 	return fmt.Sprintf("%s_addr_%08X", name, addr)
 }
 
-// UniqueVarName returns a unique name for a variable declaration
-func UniqueVarName(overlay *Overlay, v *c.VarDecl) string {
-	return fmt.Sprintf("%s_addr_%08X", v.Var.Name, v.Addr)
+// UniqueTag returns a unique tag based on the given tag and duplicate index.
+func UniqueTag(tag string, idx int) string {
+	return fmt.Sprintf("%s_duplicate_%d", tag, idx)
 }
 
-// UniqueFuncName returns a unique name for a variable declaration
-func UniqueFuncName(overlay *Overlay, f *c.FuncDecl) string {
-	return fmt.Sprintf("%s_addr_%08X", f.Var.Name, f.Addr)
+// SliceIndex returns index within slece for which the func returns true
+func SliceIndex(limit int, predicate func(i int) bool) int {
+	for i := 0; i < limit; i++ {
+		if predicate(i) {
+			return i
+		}
+	}
+	return -1
+}
+
+// UniqueVarName returns a unique variable name based on the given variable
+// and set of present variables mapped by names.
+func UniqueVarName(varNames map[string][]*c.VarDecl, v *c.VarDecl) string {
+	newName := v.Var.Name
+	newName = UniqueName(newName, v.Addr)
+	return newName
+}
+
+// UniqueFuncName returns a unique function name based on the given function
+// and set of present functions mapped by names.
+func UniqueFuncName(funcNames map[string][]*c.FuncDecl, f *c.FuncDecl) string {
+	newName := f.Var.Name
+	newName = UniqueName(newName, f.Addr)
+	return newName
+}
+
+// UniqueStructName returns a unique struct tag based on the given struct
+// and set of present structs mapped by names.
+func UniqueStructName(structNames map[string][]*c.StructType, s *c.StructType) string {
+	newTag := s.Tag
+	for {
+		structs, ok := structNames[newTag]
+		if !ok { break } // the name is unique - done
+		k := SliceIndex(len(structs), func(i int) bool { return structs[i] == s })
+		if k < 0 { k = len(structs) }
+		newTag = UniqueTag(newTag, k)
+	}
+	return newTag
 }
