@@ -134,57 +134,9 @@ func pruneDuplicates(ps []*csym.Parser, skipAddrDiff, skipLineDiff bool, opts *s
 	fakeStruct := 0
 	fakeUnion := 0
 	for pnum, p := range ps {
-		// Add unique enums.
-		for _, tag := range p.EnumTags {
-			t := p.Enums[tag]
-			fake := strings.Contains(t.Tag, "fake")
-			if fake {
-				t.Tag = placeholder
-			}
-			s := t.Def()
-			if fake {
-				tag = fmt.Sprintf("enum_fake_%d_%d", pnum, fakeEnum)
-				fakeEnum++
-				t.Tag = tag
-			}
-			if !enumPresent[s] {
-				if !fake {
-					if _, ok := dst.Enums[tag]; ok {
-						tag = fmt.Sprintf("%s_dup_%d", tag, pnum)
-						t.Tag = tag
-					}
-				}
-				dst.Enums[tag] = t
-				dst.EnumTags = append(dst.EnumTags, tag)
-			}
-			enumPresent[s] = true
-		}
+		addUniqueEnums(dst, p, pnum, &fakeEnum, &enumPresent, opts)
 		addUniqueStructs(dst, p, pnum, &fakeStruct, &structPresent, opts)
-		// Add unique unions.
-		for _, tag := range p.UnionTags {
-			t := p.Unions[tag]
-			fake := strings.Contains(t.Tag, "fake")
-			if fake {
-				t.Tag = placeholder
-			}
-			s := t.Def()
-			if fake {
-				tag = fmt.Sprintf("union_fake_%d_%d", pnum, fakeUnion)
-				fakeUnion++
-				t.Tag = tag
-			}
-			if !unionPresent[s] {
-				if !fake {
-					if _, ok := dst.Unions[tag]; ok {
-						tag = fmt.Sprintf("%s_dup_%d", tag, pnum)
-						t.Tag = tag
-					}
-				}
-				dst.Unions[tag] = t
-				dst.UnionTags = append(dst.UnionTags, tag)
-			}
-			unionPresent[s] = true
-		}
+		addUniqueUnions(dst, p, pnum, &fakeUnion, &unionPresent, opts)
 		// Add unique typedefs.
 		for _, def := range p.Typedefs {
 			s := def.Def()
@@ -289,7 +241,7 @@ func pruneDuplicates(ps []*csym.Parser, skipAddrDiff, skipLineDiff bool, opts *s
 }
 
 // addUniqueStructs adds unique structs to destination parser.
-func addUniqueStructs(dst *csym.Parser, p *csym.Parser, pnum int, fakeStruct *int, structPresent *map[string]bool, opts *sym.Options) {
+func addUniqueStructs(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int, isPresent *map[string]bool, opts *sym.Options) {
 	for tag, structs := range p.StructTags {
 		for i := 0; i < len(structs); i++ {
 			t := structs[i]
@@ -299,11 +251,11 @@ func addUniqueStructs(dst *csym.Parser, p *csym.Parser, pnum int, fakeStruct *in
 			}
 			s := t.Def()
 			if fake {
-				tag = fmt.Sprintf("struct_fake_%d_%d", pnum, *fakeStruct)
-				*fakeStruct++
+				tag = fmt.Sprintf("struct_fake_%d_%d", pnum, *fakeCount)
+				(*fakeCount)++
 				t.Tag = tag
 			}
-			if !(*structPresent)[s] {
+			if !(*isPresent)[s] {
 				if !fake {
 					if _, ok := dst.StructTags[tag]; ok {
 						tag = fmt.Sprintf("%s_dup_%d", tag, pnum)
@@ -313,9 +265,65 @@ func addUniqueStructs(dst *csym.Parser, p *csym.Parser, pnum int, fakeStruct *in
 				dst.StructTags[tag] = append(dst.StructTags[tag], t)
 				dst.Structs = append(dst.Structs, t)
 			}
-			(*structPresent)[s] = true
+			(*isPresent)[s] = true
 		}
 	}
+}
+
+// addUniqueUnions adds unique unions to destination parser.
+func addUniqueUnions(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int, isPresent *map[string]bool, opts *sym.Options) {
+		for _, tag := range p.UnionTags {
+			t := p.Unions[tag]
+			fake := strings.Contains(t.Tag, "fake")
+			if fake {
+				t.Tag = placeholder
+			}
+			s := t.Def()
+			if fake {
+				tag = fmt.Sprintf("union_fake_%d_%d", pnum, *fakeCount)
+				(*fakeCount)++
+				t.Tag = tag
+			}
+			if !(*isPresent)[s] {
+				if !fake {
+					if _, ok := dst.Unions[tag]; ok {
+						tag = fmt.Sprintf("%s_dup_%d", tag, pnum)
+						t.Tag = tag
+					}
+				}
+				dst.Unions[tag] = t
+				dst.UnionTags = append(dst.UnionTags, tag)
+			}
+			(*isPresent)[s] = true
+		}
+}
+
+// addUniqueEnums adds unique Enums to destination parser.
+func addUniqueEnums(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int, isPresent *map[string]bool, opts *sym.Options) {
+		for _, tag := range p.EnumTags {
+			t := p.Enums[tag]
+			fake := strings.Contains(t.Tag, "fake")
+			if fake {
+				t.Tag = placeholder
+			}
+			s := t.Def()
+			if fake {
+				tag = fmt.Sprintf("enum_fake_%d_%d", pnum, *fakeCount)
+				(*fakeCount)++
+				t.Tag = tag
+			}
+			if !(*isPresent)[s] {
+				if !fake {
+					if _, ok := dst.Enums[tag]; ok {
+						tag = fmt.Sprintf("%s_dup_%d", tag, pnum)
+						t.Tag = tag
+					}
+				}
+				dst.Enums[tag] = t
+				dst.EnumTags = append(dst.EnumTags, tag)
+			}
+			(*isPresent)[s] = true
+		}
 }
 
 // dump dumps the declarations of the parser to the given output directory, in
