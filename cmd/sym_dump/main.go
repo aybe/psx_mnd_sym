@@ -8,7 +8,6 @@ import (
 	"log"
 	"os"
 	"sort"
-	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/rickypai/natsort"
@@ -244,7 +243,7 @@ func addUniqueStructs(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int
 	for tag, structs := range p.StructTags {
 		for i := 0; i < len(structs); i++ {
 			t := structs[i]
-			fake := strings.Contains(t.Tag, "fake")
+			fake := c.IsFakeTag(t.Tag)
 			if fake {
 				t.Tag = placeholder
 			}
@@ -274,7 +273,7 @@ func addUniqueUnions(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int,
 	for tag, unions := range p.UnionTags {
 		for i := 0; i < len(unions); i++ {
 			t := unions[i]
-			fake := strings.Contains(t.Tag, "fake")
+			fake := c.IsFakeTag(t.Tag)
 			if fake {
 				t.Tag = placeholder
 			}
@@ -304,7 +303,7 @@ func addUniqueEnums(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int, 
 	for tag, enums := range p.EnumTags {
 		for i := 0; i < len(enums); i++ {
 			t := enums[i]
-			fake := strings.Contains(t.Tag, "fake")
+			fake := c.IsFakeTag(t.Tag)
 			if fake {
 				t.Tag = placeholder
 			}
