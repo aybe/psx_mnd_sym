@@ -12,6 +12,9 @@ import (
 // MakeNamesUnique goes through parsed symbols and renames duplicate ones.
 func (p *Parser) MakeNamesUnique() {
 	if p.opts.Verbose { fmt.Printf("Making names unique...\n") }
+	p.makeStructsUnique()
+	p.makeUnionsUnique()
+	p.makeEnumsUnique()
 	// Default overlay
 	p.makeVarNamesUniqueInOverlay(p.Overlay)
 	p.makeFuncNamesUniqueInOverlay(p.Overlay)
@@ -52,6 +55,27 @@ func (p *Parser) makeFuncNamesUniqueInOverlay(overlay *Overlay) {
 			f.Var.Name = UniqueFuncName(overlay.funcNames, f)
 		}
 	}
+}
+
+// makeStructsUnique goes through parsed symbols and renames duplicate ones.
+func (p *Parser) makeStructsUnique() {
+	for _, structs := range p.StructTags {
+		// Do not rename extern declarations
+		real_len := len(structs)
+		if  real_len < 2 { continue }
+		for i := 0; i < len(structs); i++ {
+			t := structs[i]
+			t.Tag = UniqueStructTag(p.StructTags, t)
+		}
+	}
+}
+
+// makeUnionsUnique goes through parsed symbols and renames duplicate ones.
+func (p *Parser) makeUnionsUnique() {
+}
+
+// makeEnumsUnique goes through parsed symbols and renames duplicate ones.
+func (p *Parser) makeEnumsUnique() {
 }
 
 // UniqueName returns a unique name based on the given name and address.
