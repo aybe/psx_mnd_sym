@@ -44,8 +44,7 @@ func dumpTypes(p *csym.Parser, outputDir string) error {
 		}
 	}
 	// Print structs.
-	for _, tag := range p.StructTags {
-		t := p.Structs[tag]
+	for _, t := range p.Structs {
 		if _, err := fmt.Fprintf(f, "%s;\n\n", t.Def()); err != nil {
 			return errors.WithStack(err)
 		}

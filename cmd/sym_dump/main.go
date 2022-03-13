@@ -197,7 +197,6 @@ func pruneDuplicates(ps []*csym.Parser, skipAddrDiff, skipLineDiff bool, opts *s
 
 	// Sort types by tag.
 	natsort.Strings(dst.EnumTags)
-	natsort.Strings(dst.StructTags)
 	natsort.Strings(dst.UnionTags)
 	less := func(i, j int) bool {
 		ti := dst.Typedefs[i].(*c.VarDecl)
@@ -291,8 +290,9 @@ func pruneDuplicates(ps []*csym.Parser, skipAddrDiff, skipLineDiff bool, opts *s
 
 // addUniqueStructs adds unique structs to destination parser.
 func addUniqueStructs(dst *csym.Parser, p *csym.Parser, pnum int, fakeStruct *int, structPresent *map[string]bool, opts *sym.Options) {
-		for _, tag := range p.StructTags {
-			t := p.Structs[tag]
+	for tag, structs := range p.StructTags {
+		for i := 0; i < len(structs); i++ {
+			t := structs[i]
 			fake := strings.Contains(t.Tag, "fake")
 			if fake {
 				t.Tag = placeholder
@@ -305,16 +305,17 @@ func addUniqueStructs(dst *csym.Parser, p *csym.Parser, pnum int, fakeStruct *in
 			}
 			if !(*structPresent)[s] {
 				if !fake {
-					if _, ok := dst.Structs[tag]; ok {
+					if _, ok := dst.StructTags[tag]; ok {
 						tag = fmt.Sprintf("%s_dup_%d", tag, pnum)
 						t.Tag = tag
 					}
 				}
-				dst.Structs[tag] = t
-				dst.StructTags = append(dst.StructTags, tag)
+				dst.StructTags[tag] = append(dst.StructTags[tag], t)
+				dst.Structs = append(dst.Structs, t)
 			}
 			(*structPresent)[s] = true
 		}
+	}
 }
 
 // dump dumps the declarations of the parser to the given output directory, in

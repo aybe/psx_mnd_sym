@@ -53,8 +53,8 @@ func (p *Parser) emptyStruct(tag string, size uint32) *c.StructType {
 		Tag: tag,
 		Size: size,
 	}
-	p.Structs[tag] = t
-	p.StructTags = append(p.StructTags, tag)
+	p.StructTags[tag] = append(p.StructTags[tag], t)
+	p.Structs = append(p.Structs, t)
 	return t
 }
 
@@ -93,7 +93,6 @@ func (p *Parser) initTaggedTypes(syms []*sym.Symbol) {
 	// referrenced before defined.
 	p.emptyStruct("__vtbl_ptr_type", 0)
 	var (
-		structTags = make(map[string]bool)
 		unionTags  = make(map[string]bool)
 		enumTags   = make(map[string]bool)
 	)
@@ -103,7 +102,6 @@ func (p *Parser) initTaggedTypes(syms []*sym.Symbol) {
 			tag := validName(body.Name)
 			switch body.Class {
 			case sym.ClassSTRTAG:
-				tag = uniqueTag(tag, structTags)
 				p.emptyStruct(tag, body.Size)
 			case sym.ClassUNTAG:
 				tag = uniqueTag(tag, unionTags)
@@ -302,10 +300,22 @@ func uniqueEnum(name string, members map[string]bool) string {
 
 // findStruct returns the struct with the given tag and size.
 func (p *Parser) findStruct(tag string, size uint32, matchSize bool) *c.StructType {
-	t, ok := p.Structs[tag]
-	// Ignore size - we currently support only one type with specific tag
-	if !ok {
+	var t *c.StructType = nil
+	nameExists := false
+	structs, ok := p.StructTags[tag]
+	if ok {
+		nameExists = len(structs) > 0
+		for i := 0; i < len(structs); i++ {
+			tt := structs[i]
+			if matchSize && tt.Size != size { continue }
+			t = tt
+		}
+	}
+	if t == nil {
 		t = p.emptyStruct(tag, size)
+		if nameExists {
+			t.Tag = UniqueStructTag(p.StructTags, t)
+		}
 		log.Printf("unable to locate struct %q, created empty", tag)
 	}
 	return t
@@ -315,17 +325,20 @@ func (p *Parser) findStruct(tag string, size uint32, matchSize bool) *c.StructTy
 // It selects the struct which has no fields defined yet, and
 // asserts the type exists.
 func findEmptyStruct(p *Parser, tag string, size uint32) *c.StructType {
-	newTag := tag
-	for i := 0; ; i++ {
-		t, ok := p.Structs[newTag]
-		if !ok {
-			panic(fmt.Errorf("unable to locate struct %q size %d", tag, size))
+	var t *c.StructType = nil
+	structs, ok := p.StructTags[tag]
+	if ok {
+		for i := 0; i < len(structs); i++ {
+			tt := structs[i]
+			if tt.Size != size { continue }
+			if len(tt.Fields) != 0 { continue }
+			t = tt
 		}
-		if t.Size == size && len(t.Fields) == 0 {
-			return t
-		}
-		newTag = fmt.Sprintf(duplicateTagFormat, tag, i)
 	}
+	if t == nil {
+		panic(fmt.Errorf("unable to locate struct %q size %d", tag, size))
+	}
+	return t
 }
 
 // findUnion returns the union with the given tag and size.
