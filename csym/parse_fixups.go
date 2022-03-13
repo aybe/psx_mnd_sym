@@ -90,15 +90,29 @@ func UniqueFuncName(funcNames map[string][]*c.FuncDecl, f *c.FuncDecl) string {
 	return newName
 }
 
-// UniqueStructName returns a unique struct tag based on the given struct
-// and set of present structs mapped by names.
-func UniqueStructName(structNames map[string][]*c.StructType, s *c.StructType) string {
-	newTag := s.Tag
+// UniqueStructTag returns a unique struct tag based on the given struct
+// and set of present structs mapped by tags.
+func UniqueStructTag(structTags map[string][]*c.StructType, t *c.StructType) string {
+	newTag := t.Tag
 	for {
-		structs, ok := structNames[newTag]
-		if !ok { break } // the name is unique - done
-		k := SliceIndex(len(structs), func(i int) bool { return structs[i] == s })
+		structs, ok := structTags[newTag]
+		if !ok { break } // the tag is unique - done
+		k := SliceIndex(len(structs), func(i int) bool { return structs[i] == t })
 		if k < 0 { k = len(structs) }
+		newTag = UniqueTag(newTag, k)
+	}
+	return newTag
+}
+
+// UniqueUnionTag returns a unique union tag based on the given union
+// and set of present unions mapped by tags.
+func UniqueUnionTag(unionTags map[string][]*c.UnionType, t *c.UnionType) string {
+	newTag := t.Tag
+	for {
+		unions, ok := unionTags[newTag]
+		if !ok { break } // the tag is unique - done
+		k := SliceIndex(len(unions), func(i int) bool { return unions[i] == t })
+		if k < 0 { k = len(unions) }
 		newTag = UniqueTag(newTag, k)
 	}
 	return newTag

@@ -49,13 +49,32 @@ func (p *Parser) ParseTypes(syms []*sym.Symbol) {
 }
 
 func (p *Parser) emptyStruct(tag string, size uint32) *c.StructType {
-	emptyType := &c.StructType{
+	t := &c.StructType{
 		Tag: tag,
 		Size: size,
 	}
-	p.Structs[tag] = emptyType
+	p.Structs[tag] = t
 	p.StructTags = append(p.StructTags, tag)
-	return emptyType
+	return t
+}
+
+func (p *Parser) emptyUnion(tag string, size uint32) *c.UnionType {
+	t := &c.UnionType{
+		Tag:  tag,
+		Size: size,
+	}
+	p.Unions[tag] = t
+	p.UnionTags = append(p.UnionTags, tag)
+	return t
+}
+
+func (p *Parser) emptyEnum(tag string) *c.EnumType {
+	t := &c.EnumType{
+		Tag: tag,
+	}
+	p.Enums[tag] = t
+	p.EnumTags = append(p.EnumTags, tag)
+	return t
 }
 
 // initTaggedTypes adds scaffolding types for structs, unions and enums.
@@ -72,11 +91,7 @@ func (p *Parser) initTaggedTypes(syms []*sym.Symbol) {
 	p.Types["bool"] = boolDef
 	// Add scaffolding types for structs, unions and enums, so they may be
 	// referrenced before defined.
-	vtblPtrType := &c.StructType{
-		Tag: "__vtbl_ptr_type",
-	}
-	p.Structs["__vtbl_ptr_type"] = vtblPtrType
-	p.StructTags = append(p.StructTags, "__vtbl_ptr_type")
+	p.emptyStruct("__vtbl_ptr_type", 0)
 	var (
 		structTags = make(map[string]bool)
 		unionTags  = make(map[string]bool)
@@ -89,27 +104,13 @@ func (p *Parser) initTaggedTypes(syms []*sym.Symbol) {
 			switch body.Class {
 			case sym.ClassSTRTAG:
 				tag = uniqueTag(tag, structTags)
-				t := &c.StructType{
-					Size: body.Size,
-					Tag:  tag,
-				}
-				p.Structs[tag] = t
-				p.StructTags = append(p.StructTags, tag)
+				p.emptyStruct(tag, body.Size)
 			case sym.ClassUNTAG:
 				tag = uniqueTag(tag, unionTags)
-				t := &c.UnionType{
-					Size: body.Size,
-					Tag:  tag,
-				}
-				p.Unions[tag] = t
-				p.UnionTags = append(p.UnionTags, tag)
+				p.emptyUnion(tag, body.Size)
 			case sym.ClassENTAG:
 				tag = uniqueTag(tag, enumTags)
-				t := &c.EnumType{
-					Tag: tag,
-				}
-				p.Enums[tag] = t
-				p.EnumTags = append(p.EnumTags, tag)
+				p.emptyEnum(tag)
 			}
 		}
 	}
@@ -121,7 +122,7 @@ func (p *Parser) parseStructTag(body *sym.Def, syms []*sym.Symbol) (n int) {
 		panic(fmt.Errorf("support for base type %q not yet implemented", base))
 	}
 	tag := validName(body.Name)
-	t := findStruct(p, tag, body.Size)
+	t := findEmptyStruct(p, tag, body.Size)
 	for n = 0; n < len(syms); n++ {
 		s := syms[n]
 		switch body := s.Body.(type) {
@@ -179,7 +180,7 @@ func (p *Parser) parseUnionTag(body *sym.Def, syms []*sym.Symbol) (n int) {
 		panic(fmt.Errorf("support for base type %q not yet implemented", base))
 	}
 	tag := validName(body.Name)
-	t := findUnion(p, tag, body.Size)
+	t := findEmptyUnion(p, tag, body.Size)
 	for n = 0; n < len(syms); n++ {
 		s := syms[n]
 		switch body := s.Body.(type) {
@@ -226,7 +227,7 @@ func (p *Parser) parseEnumTag(body *sym.Def, syms []*sym.Symbol) (n int) {
 		panic(fmt.Errorf("support for base type %q not yet implemented", base))
 	}
 	tag := validName(body.Name)
-	t := findEnum(p, tag)
+	t := findEmptyEnum(p, tag)
 	for n = 0; n < len(syms); n++ {
 		s := syms[n]
 		switch body := s.Body.(type) {
@@ -300,8 +301,20 @@ func uniqueEnum(name string, members map[string]bool) string {
 }
 
 // findStruct returns the struct with the given tag and size.
-// It selects the struct which has no fields defined, yet.
-func findStruct(p *Parser, tag string, size uint32) *c.StructType {
+func (p *Parser) findStruct(tag string, size uint32, matchSize bool) *c.StructType {
+	t, ok := p.Structs[tag]
+	// Ignore size - we currently support only one type with specific tag
+	if !ok {
+		t = p.emptyStruct(tag, size)
+		log.Printf("unable to locate struct %q, created empty", tag)
+	}
+	return t
+}
+
+// findEmptyStruct returns the struct with the given tag and size.
+// It selects the struct which has no fields defined yet, and
+// asserts the type exists.
+func findEmptyStruct(p *Parser, tag string, size uint32) *c.StructType {
 	newTag := tag
 	for i := 0; ; i++ {
 		t, ok := p.Structs[newTag]
@@ -316,8 +329,20 @@ func findStruct(p *Parser, tag string, size uint32) *c.StructType {
 }
 
 // findUnion returns the union with the given tag and size.
-// It selects the union which has no fields defined, yet.
-func findUnion(p *Parser, tag string, size uint32) *c.UnionType {
+func (p *Parser) findUnion(tag string, size uint32, matchSize bool) *c.UnionType {
+	t, ok := p.Unions[tag]
+	// Ignore size - we currently support only one type with specific tag
+	if !ok {
+		t = p.emptyUnion(tag, size)
+		log.Printf("unable to locate union %q, created empty", tag)
+	}
+	return t
+}
+
+// findEmptyUnion returns the union with the given tag and size.
+// It selects the union which has no fields defined yet, and
+// asserts the type exists.
+func findEmptyUnion(p *Parser, tag string, size uint32) *c.UnionType {
 	newTag := tag
 	for i := 0; ; i++ {
 		t, ok := p.Unions[newTag]
@@ -331,9 +356,21 @@ func findUnion(p *Parser, tag string, size uint32) *c.UnionType {
 	}
 }
 
-// findEnum returns the enum with the given tag.
-// It selects the enum which has no members defined, yet.
-func findEnum(p *Parser, tag string) *c.EnumType {
+// findEnum returns the enumeration with the given tag.
+func (p *Parser) findEnum(tag string) *c.EnumType {
+	t, ok := p.Enums[tag]
+	// Ignore size - we currently support only one type with specific tag
+	if !ok {
+		t = p.emptyEnum(tag)
+		log.Printf("unable to locate enum %q, created empty", tag)
+	}
+	return t
+}
+
+// findEmptyEnum returns the enumeration with the given tag.
+// It selects the enum which has no members defined yet, and
+// asserts the type exists.
+func findEmptyEnum(p *Parser, tag string) *c.EnumType {
 	newTag := tag
 	for i := 0; ; i++ {
 		t, ok := p.Enums[newTag]
@@ -370,24 +407,11 @@ func (p *Parser) parseBase(base sym.Base, tag string) c.Type {
 	case sym.BaseLong:
 		return c.Long
 	case sym.BaseStruct:
-		t, ok := p.Structs[tag]
-		if !ok {
-			t = p.emptyStruct(tag, 0)
-			log.Printf("unable to locate struct %q, created empty", tag)
-		}
-		return t
+		return p.findStruct(tag, 0, false)
 	case sym.BaseUnion:
-		t, ok := p.Unions[tag]
-		if !ok {
-			panic(fmt.Errorf("unable to locate union %q", tag))
-		}
-		return t
+		return p.findUnion(tag, 0, false)
 	case sym.BaseEnum:
-		t, ok := p.Enums[tag]
-		if !ok {
-			panic(fmt.Errorf("unable to locate enum %q", tag))
-		}
-		return t
+		return p.findEnum(tag)
 	//case sym.BaseMOE:
 	case sym.BaseUChar:
 		return c.UChar

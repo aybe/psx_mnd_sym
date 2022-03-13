@@ -114,6 +114,9 @@ func main() {
 	}
 }
 
+// placeholder type name to make types match even when typename differ.
+const placeholder = "placeholder"
+
 // pruneDuplicates prunes duplicates declarations of the parser, optionally
 // ignoring differences in address.
 func pruneDuplicates(ps []*csym.Parser, skipAddrDiff, skipLineDiff bool, opts *sym.Options) *csym.Parser {
@@ -127,8 +130,6 @@ func pruneDuplicates(ps []*csym.Parser, skipAddrDiff, skipLineDiff bool, opts *s
 		dst.Types["bool"] = def
 	}
 
-	// placeholder type name to make types match even when typename differ.
-	const placeholder = "placeholder"
 	fakeEnum := 0
 	fakeStruct := 0
 	fakeUnion := 0
@@ -158,31 +159,7 @@ func pruneDuplicates(ps []*csym.Parser, skipAddrDiff, skipLineDiff bool, opts *s
 			}
 			enumPresent[s] = true
 		}
-		// Add unique structs.
-		for _, tag := range p.StructTags {
-			t := p.Structs[tag]
-			fake := strings.Contains(t.Tag, "fake")
-			if fake {
-				t.Tag = placeholder
-			}
-			s := t.Def()
-			if fake {
-				tag = fmt.Sprintf("struct_fake_%d_%d", pnum, fakeStruct)
-				fakeStruct++
-				t.Tag = tag
-			}
-			if !structPresent[s] {
-				if !fake {
-					if _, ok := dst.Structs[tag]; ok {
-						tag = fmt.Sprintf("%s_dup_%d", tag, pnum)
-						t.Tag = tag
-					}
-				}
-				dst.Structs[tag] = t
-				dst.StructTags = append(dst.StructTags, tag)
-			}
-			structPresent[s] = true
-		}
+		addUniqueStructs(dst, p, pnum, &fakeStruct, &structPresent, opts)
 		// Add unique unions.
 		for _, tag := range p.UnionTags {
 			t := p.Unions[tag]
@@ -310,6 +287,34 @@ func pruneDuplicates(ps []*csym.Parser, skipAddrDiff, skipLineDiff bool, opts *s
 	}
 
 	return dst
+}
+
+// addUniqueStructs adds unique structs to destination parser.
+func addUniqueStructs(dst *csym.Parser, p *csym.Parser, pnum int, fakeStruct *int, structPresent *map[string]bool, opts *sym.Options) {
+		for _, tag := range p.StructTags {
+			t := p.Structs[tag]
+			fake := strings.Contains(t.Tag, "fake")
+			if fake {
+				t.Tag = placeholder
+			}
+			s := t.Def()
+			if fake {
+				tag = fmt.Sprintf("struct_fake_%d_%d", pnum, *fakeStruct)
+				*fakeStruct++
+				t.Tag = tag
+			}
+			if !(*structPresent)[s] {
+				if !fake {
+					if _, ok := dst.Structs[tag]; ok {
+						tag = fmt.Sprintf("%s_dup_%d", tag, pnum)
+						t.Tag = tag
+					}
+				}
+				dst.Structs[tag] = t
+				dst.StructTags = append(dst.StructTags, tag)
+			}
+			(*structPresent)[s] = true
+		}
 }
 
 // dump dumps the declarations of the parser to the given output directory, in
