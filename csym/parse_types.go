@@ -63,8 +63,8 @@ func (p *Parser) emptyUnion(tag string, size uint32) *c.UnionType {
 		Tag:  tag,
 		Size: size,
 	}
-	p.Unions[tag] = t
-	p.UnionTags = append(p.UnionTags, tag)
+	p.UnionTags[tag] = append(p.UnionTags[tag], t)
+	p.Unions = append(p.Unions, t)
 	return t
 }
 
@@ -93,7 +93,6 @@ func (p *Parser) initTaggedTypes(syms []*sym.Symbol) {
 	// referrenced before defined.
 	p.emptyStruct("__vtbl_ptr_type", 0)
 	var (
-		unionTags  = make(map[string]bool)
 		enumTags   = make(map[string]bool)
 	)
 	for _, s := range syms {
@@ -104,7 +103,6 @@ func (p *Parser) initTaggedTypes(syms []*sym.Symbol) {
 			case sym.ClassSTRTAG:
 				p.emptyStruct(tag, body.Size)
 			case sym.ClassUNTAG:
-				tag = uniqueTag(tag, unionTags)
 				p.emptyUnion(tag, body.Size)
 			case sym.ClassENTAG:
 				tag = uniqueTag(tag, enumTags)
@@ -323,7 +321,7 @@ func (p *Parser) findStruct(tag string, size uint32, matchSize bool) *c.StructTy
 
 // findEmptyStruct returns the struct with the given tag and size.
 // It selects the struct which has no fields defined yet, and
-// asserts the type exists.
+// asserts that the type exists.
 func findEmptyStruct(p *Parser, tag string, size uint32) *c.StructType {
 	var t *c.StructType = nil
 	structs, ok := p.StructTags[tag]
@@ -343,10 +341,22 @@ func findEmptyStruct(p *Parser, tag string, size uint32) *c.StructType {
 
 // findUnion returns the union with the given tag and size.
 func (p *Parser) findUnion(tag string, size uint32, matchSize bool) *c.UnionType {
-	t, ok := p.Unions[tag]
-	// Ignore size - we currently support only one type with specific tag
-	if !ok {
+	var t *c.UnionType = nil
+	nameExists := false
+	unions, ok := p.UnionTags[tag]
+	if ok {
+		nameExists = len(unions) > 0
+		for i := 0; i < len(unions); i++ {
+			tt := unions[i]
+			if matchSize && tt.Size != size { continue }
+			t = tt
+		}
+	}
+	if t == nil {
 		t = p.emptyUnion(tag, size)
+		if nameExists {
+			t.Tag = UniqueUnionTag(p.UnionTags, t)
+		}
 		log.Printf("unable to locate union %q, created empty", tag)
 	}
 	return t
@@ -354,19 +364,22 @@ func (p *Parser) findUnion(tag string, size uint32, matchSize bool) *c.UnionType
 
 // findEmptyUnion returns the union with the given tag and size.
 // It selects the union which has no fields defined yet, and
-// asserts the type exists.
+// asserts that the type exists.
 func findEmptyUnion(p *Parser, tag string, size uint32) *c.UnionType {
-	newTag := tag
-	for i := 0; ; i++ {
-		t, ok := p.Unions[newTag]
-		if !ok {
-			panic(fmt.Errorf("unable to locate union %q", tag))
+	var t *c.UnionType = nil
+	unions, ok := p.UnionTags[tag]
+	if ok {
+		for i := 0; i < len(unions); i++ {
+			tt := unions[i]
+			if tt.Size != size { continue }
+			if len(tt.Fields) != 0 { continue }
+			t = tt
 		}
-		if t.Size == size && len(t.Fields) == 0 {
-			return t
-		}
-		newTag = fmt.Sprintf(duplicateTagFormat, tag, i)
 	}
+	if t == nil {
+		panic(fmt.Errorf("unable to locate union %q size %d", tag, size))
+	}
+	return t
 }
 
 // findEnum returns the enumeration with the given tag.
@@ -382,7 +395,7 @@ func (p *Parser) findEnum(tag string) *c.EnumType {
 
 // findEmptyEnum returns the enumeration with the given tag.
 // It selects the enum which has no members defined yet, and
-// asserts the type exists.
+// asserts that the type exists.
 func findEmptyEnum(p *Parser, tag string) *c.EnumType {
 	newTag := tag
 	for i := 0; ; i++ {

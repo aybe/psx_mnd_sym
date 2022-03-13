@@ -50,8 +50,7 @@ func dumpTypes(p *csym.Parser, outputDir string) error {
 		}
 	}
 	// Print unions.
-	for _, tag := range p.UnionTags {
-		t := p.Unions[tag]
+	for _, t := range p.Unions {
 		if _, err := fmt.Fprintf(f, "%s;\n\n", t.Def()); err != nil {
 			return errors.WithStack(err)
 		}

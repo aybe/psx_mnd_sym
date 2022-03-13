@@ -149,7 +149,6 @@ func pruneDuplicates(ps []*csym.Parser, skipAddrDiff, skipLineDiff bool, opts *s
 
 	// Sort types by tag.
 	natsort.Strings(dst.EnumTags)
-	natsort.Strings(dst.UnionTags)
 	less := func(i, j int) bool {
 		ti := dst.Typedefs[i].(*c.VarDecl)
 		tj := dst.Typedefs[j].(*c.VarDecl)
@@ -272,8 +271,9 @@ func addUniqueStructs(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int
 
 // addUniqueUnions adds unique unions to destination parser.
 func addUniqueUnions(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int, isPresent *map[string]bool, opts *sym.Options) {
-		for _, tag := range p.UnionTags {
-			t := p.Unions[tag]
+	for tag, unions := range p.UnionTags {
+		for i := 0; i < len(unions); i++ {
+			t := unions[i]
 			fake := strings.Contains(t.Tag, "fake")
 			if fake {
 				t.Tag = placeholder
@@ -286,16 +286,17 @@ func addUniqueUnions(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int,
 			}
 			if !(*isPresent)[s] {
 				if !fake {
-					if _, ok := dst.Unions[tag]; ok {
+					if _, ok := dst.UnionTags[tag]; ok {
 						tag = fmt.Sprintf("%s_dup_%d", tag, pnum)
 						t.Tag = tag
 					}
 				}
-				dst.Unions[tag] = t
-				dst.UnionTags = append(dst.UnionTags, tag)
+				dst.UnionTags[tag] = append(dst.UnionTags[tag], t)
+				dst.Unions = append(dst.Unions, t)
 			}
 			(*isPresent)[s] = true
 		}
+	}
 }
 
 // addUniqueEnums adds unique Enums to destination parser.
