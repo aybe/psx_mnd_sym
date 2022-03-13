@@ -12,18 +12,18 @@ type Parser struct {
 
 	// Struct maps from struct tag to struct types.
 	StructTags map[string][]*c.StructType
-	// unions maps from union tag to union type.
+	// Unions maps from union tag to union types.
 	UnionTags map[string][]*c.UnionType
-	// enums maps from enum tag to enum type.
-	Enums map[string]*c.EnumType
+	// Enums maps from enum tag to enum types.
+	EnumTags map[string][]*c.EnumType
 	// types maps from type name to underlying type definition.
 	Types map[string]c.Type
 	// Structs in order of occurrence in SYM file.
 	Structs []*c.StructType
 	// Unions in order of occurrence in SYM file.
 	Unions []*c.UnionType
-	// Enum tags in order of occurrence in SYM file.
-	EnumTags []string
+	// Enums in order of occurrence in SYM file.
+	Enums []*c.EnumType
 	// Type definitions in order of occurrence in SYM file.
 	Typedefs []c.Type
 	// Tracks unique enum member names.
@@ -53,7 +53,7 @@ func NewParser(opts *sym.Options) *Parser {
 	return &Parser{
 		StructTags:  make(map[string][]*c.StructType),
 		UnionTags:   make(map[string][]*c.UnionType),
-		Enums:       make(map[string]*c.EnumType),
+		EnumTags:    make(map[string][]*c.EnumType),
 		Types:       make(map[string]c.Type),
 		enumMembers: make(map[string]bool),
 		Overlay:     overlay,

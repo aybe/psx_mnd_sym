@@ -77,6 +77,7 @@ func main() {
 			}
 			p.ParseTypes(f.Syms)
 			p.ParseDecls(f.Syms)
+			p.RemoveDuplicateTypes()
 			p.MakeNamesUnique()
 			// Output once for each files if not in merge mode.
 			if !merge {
@@ -148,7 +149,6 @@ func pruneDuplicates(ps []*csym.Parser, skipAddrDiff, skipLineDiff bool, opts *s
 	}
 
 	// Sort types by tag.
-	natsort.Strings(dst.EnumTags)
 	less := func(i, j int) bool {
 		ti := dst.Typedefs[i].(*c.VarDecl)
 		tj := dst.Typedefs[j].(*c.VarDecl)
@@ -301,8 +301,9 @@ func addUniqueUnions(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int,
 
 // addUniqueEnums adds unique Enums to destination parser.
 func addUniqueEnums(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int, isPresent *map[string]bool, opts *sym.Options) {
-		for _, tag := range p.EnumTags {
-			t := p.Enums[tag]
+	for tag, enums := range p.EnumTags {
+		for i := 0; i < len(enums); i++ {
+			t := enums[i]
 			fake := strings.Contains(t.Tag, "fake")
 			if fake {
 				t.Tag = placeholder
@@ -315,16 +316,17 @@ func addUniqueEnums(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int, 
 			}
 			if !(*isPresent)[s] {
 				if !fake {
-					if _, ok := dst.Enums[tag]; ok {
+					if _, ok := dst.EnumTags[tag]; ok {
 						tag = fmt.Sprintf("%s_dup_%d", tag, pnum)
 						t.Tag = tag
 					}
 				}
-				dst.Enums[tag] = t
-				dst.EnumTags = append(dst.EnumTags, tag)
+				dst.EnumTags[tag] = append(dst.EnumTags[tag], t)
+				dst.Enums = append(dst.Enums, t)
 			}
 			(*isPresent)[s] = true
 		}
+	}
 }
 
 // dump dumps the declarations of the parser to the given output directory, in

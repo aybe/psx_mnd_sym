@@ -37,8 +37,7 @@ func dumpTypes(p *csym.Parser, outputDir string) error {
 		}
 	}
 	// Print enums.
-	for _, tag := range p.EnumTags {
-		t := p.Enums[tag]
+	for _, t := range p.Enums {
 		if _, err := fmt.Fprintf(f, "%s;\n\n", t.Def()); err != nil {
 			return errors.WithStack(err)
 		}

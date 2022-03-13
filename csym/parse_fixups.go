@@ -2,14 +2,41 @@ package csym
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/mefistotelis/psx_mnd_sym/csym/c"
 )
 
-//TODO make unique names of types
-//TODO remove duplicate items
+// RemoveDuplicateTypes goes through parsed types and marks exact duplicates.
+func (p *Parser) RemoveDuplicateTypes() {
+	if p.opts.Verbose { fmt.Printf("Remove duplicate types...\n") }
+	p.removeStructsDuplicates()
+}
 
-// MakeNamesUnique goes through parsed symbols and renames duplicate ones.
+// removeStructsDuplicates goes through parsed symbols and marks exact duplicates.
+func (p *Parser) removeStructsDuplicates() {
+	n := 0
+	for tag, structs := range p.StructTags {
+		for i := 0; i < len(structs); i++ {
+			t1 := structs[i]
+			for k := i+1; k < len(structs); k++ {
+				t2 := structs[k]
+				if !reflect.DeepEqual(t2, t1) { continue }
+				structs = structsRemoveIndex(structs, k)
+				k--
+				n++
+			}
+		}
+		p.StructTags[tag] = structs;
+	}
+	if p.opts.Verbose { fmt.Printf("Removed structs: %d\n", n) }
+}
+
+func structsRemoveIndex(s []*c.StructType, index int) []*c.StructType {
+    return append(s[:index], s[index+1:]...)
+}
+
+// MakeNamesUnique goes through parsed symbols and renames duplicate names.
 func (p *Parser) MakeNamesUnique() {
 	if p.opts.Verbose { fmt.Printf("Making names unique...\n") }
 	p.makeStructsUnique()
@@ -60,7 +87,6 @@ func (p *Parser) makeFuncNamesUniqueInOverlay(overlay *Overlay) {
 // makeStructsUnique goes through parsed symbols and renames duplicate ones.
 func (p *Parser) makeStructsUnique() {
 	for _, structs := range p.StructTags {
-		// Do not rename extern declarations
 		real_len := len(structs)
 		if  real_len < 2 { continue }
 		for i := 0; i < len(structs); i++ {
@@ -72,10 +98,26 @@ func (p *Parser) makeStructsUnique() {
 
 // makeUnionsUnique goes through parsed symbols and renames duplicate ones.
 func (p *Parser) makeUnionsUnique() {
+	for _, unions := range p.UnionTags {
+		real_len := len(unions)
+		if  real_len < 2 { continue }
+		for i := 0; i < len(unions); i++ {
+			t := unions[i]
+			t.Tag = UniqueUnionTag(p.UnionTags, t)
+		}
+	}
 }
 
 // makeEnumsUnique goes through parsed symbols and renames duplicate ones.
 func (p *Parser) makeEnumsUnique() {
+	for _, enums := range p.EnumTags {
+		real_len := len(enums)
+		if  real_len < 2 { continue }
+		for i := 0; i < len(enums); i++ {
+			t := enums[i]
+			t.Tag = UniqueEnumTag(p.EnumTags, t)
+		}
+	}
 }
 
 // UniqueName returns a unique name based on the given name and address.
@@ -141,3 +183,18 @@ func UniqueUnionTag(unionTags map[string][]*c.UnionType, t *c.UnionType) string 
 	}
 	return newTag
 }
+
+// UniqueEnumTag returns a unique enum tag based on the given enum
+// and set of present enums mapped by tags.
+func UniqueEnumTag(EnumTags map[string][]*c.EnumType, t *c.EnumType) string {
+	newTag := t.Tag
+	for {
+		enums, ok := EnumTags[newTag]
+		if !ok { break } // the tag is unique - done
+		k := SliceIndex(len(enums), func(i int) bool { return enums[i] == t })
+		if k < 0 { k = len(enums) }
+		newTag = UniqueTag(newTag, k)
+	}
+	return newTag
+}
+

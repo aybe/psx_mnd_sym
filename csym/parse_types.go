@@ -72,8 +72,8 @@ func (p *Parser) emptyEnum(tag string) *c.EnumType {
 	t := &c.EnumType{
 		Tag: tag,
 	}
-	p.Enums[tag] = t
-	p.EnumTags = append(p.EnumTags, tag)
+	p.EnumTags[tag] = append(p.EnumTags[tag], t)
+	p.Enums = append(p.Enums, t)
 	return t
 }
 
@@ -92,9 +92,6 @@ func (p *Parser) initTaggedTypes(syms []*sym.Symbol) {
 	// Add scaffolding types for structs, unions and enums, so they may be
 	// referrenced before defined.
 	p.emptyStruct("__vtbl_ptr_type", 0)
-	var (
-		enumTags   = make(map[string]bool)
-	)
 	for _, s := range syms {
 		switch body := s.Body.(type) {
 		case *sym.Def:
@@ -105,7 +102,6 @@ func (p *Parser) initTaggedTypes(syms []*sym.Symbol) {
 			case sym.ClassUNTAG:
 				p.emptyUnion(tag, body.Size)
 			case sym.ClassENTAG:
-				tag = uniqueTag(tag, enumTags)
 				p.emptyEnum(tag)
 			}
 		}
@@ -384,10 +380,21 @@ func findEmptyUnion(p *Parser, tag string, size uint32) *c.UnionType {
 
 // findEnum returns the enumeration with the given tag.
 func (p *Parser) findEnum(tag string) *c.EnumType {
-	t, ok := p.Enums[tag]
-	// Ignore size - we currently support only one type with specific tag
-	if !ok {
+	var t *c.EnumType = nil
+	nameExists := false
+	enums, ok := p.EnumTags[tag]
+	if ok {
+		nameExists = len(enums) > 0
+		for i := 0; i < len(enums); i++ {
+			tt := enums[i]
+			t = tt
+		}
+	}
+	if t == nil {
 		t = p.emptyEnum(tag)
+		if nameExists {
+			t.Tag = UniqueEnumTag(p.EnumTags, t)
+		}
 		log.Printf("unable to locate enum %q, created empty", tag)
 	}
 	return t
@@ -397,17 +404,19 @@ func (p *Parser) findEnum(tag string) *c.EnumType {
 // It selects the enum which has no members defined yet, and
 // asserts that the type exists.
 func findEmptyEnum(p *Parser, tag string) *c.EnumType {
-	newTag := tag
-	for i := 0; ; i++ {
-		t, ok := p.Enums[newTag]
-		if !ok {
-			panic(fmt.Errorf("unable to locate enum %q", tag))
+	var t *c.EnumType = nil
+	enums, ok := p.EnumTags[tag]
+	if ok {
+		for i := 0; i < len(enums); i++ {
+			tt := enums[i]
+			if len(tt.Members) != 0 { continue }
+			t = tt
 		}
-		if len(t.Members) == 0 {
-			return t
-		}
-		newTag = fmt.Sprintf(duplicateTagFormat, tag, i)
 	}
+	if t == nil {
+		panic(fmt.Errorf("unable to locate enum %q", tag))
+	}
+	return t
 }
 
 // parseType parses the SYM type into the equivalent C type.
