@@ -48,14 +48,77 @@ func (p *Parser) ParseTypes(syms []*sym.Symbol) {
 	}
 }
 
+// SliceIndex returns index within slece for which the func returns true
+func SliceIndex(limit int, predicate func(i int) bool) int {
+	for i := 0; i < limit; i++ {
+		if predicate(i) {
+			return i
+		}
+	}
+	return -1
+}
+
+func (p *Parser) AddStruct(t *c.StructType) *c.StructType {
+	p.Structs = append(p.Structs, t)
+	p.StructTags[t.Tag] = append(p.StructTags[t.Tag], t)
+	return t
+}
+
+func (p *Parser) ReplaceStruct(ts *c.StructType, td *c.StructType) {
+	for _, structs := range p.StructTags {
+		for i := 0; i < len(structs); i++ {
+			if structs[i] == ts {
+				structs[i] = td
+			}
+		}
+	}
+	for i := 0; i < len(p.Structs); i++ {
+		if p.Structs[i] == ts {
+			p.Structs[i] = td
+		}
+	}
+}
+
+func rmNilStructsFromSlice(structs []*c.StructType) []*c.StructType {
+	for i := 0; i < len(structs); {
+		if structs[i] != nil {
+			i++
+			continue
+		}
+		if i < len(structs)-1 {
+			copy(structs[i:], structs[i+1:])
+		}
+		structs[len(structs)-1] = nil
+		structs = structs[:len(structs)-1]
+	}
+	return structs
+}
+
+func (p *Parser) RmNilStructs() {
+	for tag, structs := range p.StructTags {
+		p.StructTags[tag] = rmNilStructsFromSlice(structs)
+	}
+	p.Structs = rmNilStructsFromSlice(p.Structs)
+}
+
+func (p *Parser) AddUnion(t *c.UnionType) *c.UnionType {
+	p.Unions = append(p.Unions, t)
+	p.UnionTags[t.Tag] = append(p.UnionTags[t.Tag], t)
+	return t
+}
+
+func (p *Parser) AddEnum(t *c.EnumType) *c.EnumType {
+	p.Enums = append(p.Enums, t)
+	p.EnumTags[t.Tag] = append(p.EnumTags[t.Tag], t)
+	return t
+}
+
 func (p *Parser) emptyStruct(tag string, size uint32) *c.StructType {
 	t := &c.StructType{
 		Tag: tag,
 		Size: size,
 	}
-	p.StructTags[tag] = append(p.StructTags[tag], t)
-	p.Structs = append(p.Structs, t)
-	return t
+	return p.AddStruct(t)
 }
 
 func (p *Parser) emptyUnion(tag string, size uint32) *c.UnionType {
@@ -63,18 +126,14 @@ func (p *Parser) emptyUnion(tag string, size uint32) *c.UnionType {
 		Tag:  tag,
 		Size: size,
 	}
-	p.UnionTags[tag] = append(p.UnionTags[tag], t)
-	p.Unions = append(p.Unions, t)
-	return t
+	return p.AddUnion(t)
 }
 
 func (p *Parser) emptyEnum(tag string) *c.EnumType {
 	t := &c.EnumType{
 		Tag: tag,
 	}
-	p.EnumTags[tag] = append(p.EnumTags[tag], t)
-	p.Enums = append(p.Enums, t)
-	return t
+	return p.AddEnum(t)
 }
 
 // initTaggedTypes adds scaffolding types for structs, unions and enums.

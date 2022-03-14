@@ -16,24 +16,22 @@ func (p *Parser) RemoveDuplicateTypes() {
 // removeStructsDuplicates goes through parsed symbols and marks exact duplicates.
 func (p *Parser) removeStructsDuplicates() {
 	n := 0
-	for tag, structs := range p.StructTags {
+	for _, structs := range p.StructTags {
 		for i := 0; i < len(structs); i++ {
 			t1 := structs[i]
+			if t1 == nil { continue }
 			for k := i+1; k < len(structs); k++ {
 				t2 := structs[k]
 				if !reflect.DeepEqual(t2, t1) { continue }
-				structs = structsRemoveIndex(structs, k)
-				k--
+				// Replace the pointers with nil, to avoid reordering too often
+				p.ReplaceStruct(t2, nil)
 				n++
 			}
 		}
-		p.StructTags[tag] = structs;
+		// Remove nil items
+		p.RmNilStructs()
 	}
 	if p.opts.Verbose { fmt.Printf("Removed structs: %d\n", n) }
-}
-
-func structsRemoveIndex(s []*c.StructType, index int) []*c.StructType {
-    return append(s[:index], s[index+1:]...)
 }
 
 // MakeNamesUnique goes through parsed symbols and renames duplicate names.
@@ -128,16 +126,6 @@ func UniqueName(name string, addr uint32) string {
 // UniqueTag returns a unique tag based on the given tag and duplicate index.
 func UniqueTag(tag string, idx int) string {
 	return fmt.Sprintf("%s_duplicate_%d", tag, idx)
-}
-
-// SliceIndex returns index within slece for which the func returns true
-func SliceIndex(limit int, predicate func(i int) bool) int {
-	for i := 0; i < limit; i++ {
-		if predicate(i) {
-			return i
-		}
-	}
-	return -1
 }
 
 // UniqueVarName returns a unique variable name based on the given variable
