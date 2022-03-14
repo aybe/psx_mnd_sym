@@ -11,6 +11,8 @@ import (
 func (p *Parser) RemoveDuplicateTypes() {
 	if p.opts.Verbose { fmt.Printf("Remove duplicate types...\n") }
 	p.removeStructsDuplicates()
+	p.removeUnionsDuplicates()
+	p.removeStructsDuplicates()
 }
 
 // removeStructsDuplicates goes through parsed symbols and marks exact duplicates.
@@ -32,6 +34,48 @@ func (p *Parser) removeStructsDuplicates() {
 		p.RmNilStructs()
 	}
 	if p.opts.Verbose { fmt.Printf("Removed structs: %d\n", n) }
+}
+
+// removeUnionsDuplicates goes through parsed symbols and marks exact duplicates.
+func (p *Parser) removeUnionsDuplicates() {
+	n := 0
+	for _, unions := range p.UnionTags {
+		for i := 0; i < len(unions); i++ {
+			t1 := unions[i]
+			if t1 == nil { continue }
+			for k := i+1; k < len(unions); k++ {
+				t2 := unions[k]
+				if !reflect.DeepEqual(t2, t1) { continue }
+				// Replace the pointers with nil, to avoid reordering too often
+				p.ReplaceUnion(t2, nil)
+				n++
+			}
+		}
+		// Remove nil items
+		p.RmNilUnions()
+	}
+	if p.opts.Verbose { fmt.Printf("Removed unions: %d\n", n) }
+}
+
+// removeEnumsDuplicates goes through parsed symbols and marks exact duplicates.
+func (p *Parser) removeEnumsDuplicates() {
+	n := 0
+	for _, enums := range p.EnumTags {
+		for i := 0; i < len(enums); i++ {
+			t1 := enums[i]
+			if t1 == nil { continue }
+			for k := i+1; k < len(enums); k++ {
+				t2 := enums[k]
+				if !reflect.DeepEqual(t2, t1) { continue }
+				// Replace the pointers with nil, to avoid reordering too often
+				p.ReplaceEnum(t2, nil)
+				n++
+			}
+		}
+		// Remove nil items
+		p.RmNilEnums()
+	}
+	if p.opts.Verbose { fmt.Printf("Removed enums: %d\n", n) }
 }
 
 // MakeNamesUnique goes through parsed symbols and renames duplicate names.
