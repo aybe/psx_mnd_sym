@@ -44,44 +44,61 @@ func (p *Parser) removeStructsDuplicates() {
 
 // removeUnionsDuplicates goes through parsed symbols and marks exact duplicates.
 func (p *Parser) removeUnionsDuplicates() {
-	n := 0
+	// Create a type replacing map
+	typeRemap := make(map[c.Type]c.Type)
 	for _, unions := range p.UnionTags {
 		for i := 0; i < len(unions); i++ {
 			t1 := unions[i]
-			if t1 == nil { continue }
+			if _, ok := typeRemap[t1]; ok { continue }
 			for k := i+1; k < len(unions); k++ {
 				t2 := unions[k]
+				if _, ok := typeRemap[t2]; ok { continue }
 				if !reflect.DeepEqual(t2, t1) { continue }
-				// Replace the pointers with nil, to avoid reordering too often
-				p.ReplaceUnion(t2, nil)
-				n++
+				typeRemap[t2] = t1
 			}
 		}
-		// Remove nil items
-		p.RmNilUnions()
 	}
-	if p.opts.Verbose { fmt.Printf("Removed unions: %d\n", n) }
+	// Replace the pointers in uses of types within other types and declarations
+	p.ReplaceUsedTypes(typeRemap)
+	// Replace the pointers on main lists with nil, then remove nil items
+	for t2, _ := range typeRemap {
+		typeRemap[t2] = nil
+	}
+	p.ReplaceUnions(typeRemap)
+	p.RmNilUnions()
+	if p.opts.Verbose { fmt.Printf("Removed unions: %d\n", len(typeRemap)) }
 }
 
 // removeEnumsDuplicates goes through parsed symbols and marks exact duplicates.
 func (p *Parser) removeEnumsDuplicates() {
-	n := 0
+	// Create a type replacing map
+	typeRemap := make(map[c.Type]c.Type)
 	for _, enums := range p.EnumTags {
 		for i := 0; i < len(enums); i++ {
 			t1 := enums[i]
-			if t1 == nil { continue }
+			if _, ok := typeRemap[t1]; ok { continue }
 			for k := i+1; k < len(enums); k++ {
 				t2 := enums[k]
+				if _, ok := typeRemap[t2]; ok { continue }
 				if !reflect.DeepEqual(t2, t1) { continue }
-				// Replace the pointers with nil, to avoid reordering too often
-				p.ReplaceEnum(t2, nil)
-				n++
+				typeRemap[t2] = t1
 			}
 		}
-		// Remove nil items
-		p.RmNilEnums()
 	}
-	if p.opts.Verbose { fmt.Printf("Removed enums: %d\n", n) }
+	// Replace the pointers in uses of types within other types and declarations
+	p.ReplaceUsedTypes(typeRemap)
+	// Replace the pointers on main lists with nil, then remove nil items
+	for t2, _ := range typeRemap {
+		typeRemap[t2] = nil
+	}
+	p.ReplaceEnums(typeRemap)
+	p.RmNilEnums()
+	if p.opts.Verbose { fmt.Printf("Removed enums: %d\n", len(typeRemap)) }
+}
+
+// replaceUsedSubtypesInType remaps sub-types within the Type interface.
+func replaceUsedSubtypesInType(t c.Type, typeRemap map[c.Type]c.Type) {
+	//TODO cast to specific type and replace the uses inside as well
 }
 
 func replaceUsedTypesInVar(v *c.Var, typeRemap map[c.Type]c.Type) {
@@ -89,6 +106,7 @@ func replaceUsedTypesInVar(v *c.Var, typeRemap map[c.Type]c.Type) {
 	if ok {
 		v.Type = t1
 	}
+	 replaceUsedSubtypesInType(v.Type, typeRemap)
 }
 
 func (p *Parser) replaceUsedTypesInStructs(typeRemap map[c.Type]c.Type) {
@@ -109,6 +127,13 @@ func (p *Parser) replaceUsedTypesInUnions(typeRemap map[c.Type]c.Type) {
 		for k := 0; k < len(t.Fields); k++ {
 			replaceUsedTypesInVar(&t.Fields[k].Var, typeRemap)
 		}
+	}
+}
+func (p *Parser) replaceUsedTypesInTypedefs(typeRemap map[c.Type]c.Type) {
+	for i := 0; i < len(p.Typedefs); i++ {
+		t := p.Typedefs[i]
+		// Do not replace the typedef itself, only uses of types within
+		 replaceUsedSubtypesInType(t, typeRemap)
 	}
 }
 
@@ -135,6 +160,7 @@ func (p *Parser) replaceUsedFuncTypesInInOverlay(overlay *Overlay, typeRemap map
 func (p *Parser) ReplaceUsedTypes(typeRemap map[c.Type]c.Type) {
 	p.replaceUsedTypesInStructs(typeRemap)
 	p.replaceUsedTypesInUnions(typeRemap)
+	p.replaceUsedTypesInTypedefs(typeRemap)
 	// Default overlay
 	p.replaceUsedVarTypesInInOverlay(p.Overlay, typeRemap)
 	p.replaceUsedFuncTypesInInOverlay(p.Overlay, typeRemap)

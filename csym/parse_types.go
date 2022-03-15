@@ -382,19 +382,26 @@ func (p *Parser) AddUnion(t *c.UnionType) *c.UnionType {
 	return t
 }
 
-func (p *Parser) ReplaceUnion(ts *c.UnionType, td *c.UnionType) {
-	for _, unions := range p.UnionTags {
-		for i := 0; i < len(unions); i++ {
-			if unions[i] == ts {
-				unions[i] = td
+func replaceUnionsInSlice(unions []*c.UnionType, typeRemap map[c.Type]c.Type) {
+	for i := 0; i < len(unions); i++ {
+		t1, ok := typeRemap[unions[i]]
+		if ok {
+			if t1 == nil {
+				unions[i] = nil
+			} else {
+				unions[i] = t1.(*c.UnionType)
 			}
 		}
 	}
-	for i := 0; i < len(p.Unions); i++ {
-		if p.Unions[i] == ts {
-			p.Unions[i] = td
-		}
+}
+
+// ReplaceUnions replaces types with another in lists within parser
+// It does not replace use of the union in other types
+func (p *Parser) ReplaceUnions(typeRemap map[c.Type]c.Type) {
+	for _, unions := range p.UnionTags {
+		replaceUnionsInSlice(unions, typeRemap)
 	}
+	replaceUnionsInSlice(p.Unions, typeRemap)
 }
 
 func rmNilUnionsFromSlice(unions []*c.UnionType) []*c.UnionType {
@@ -477,19 +484,26 @@ func (p *Parser) AddEnum(t *c.EnumType) *c.EnumType {
 	return t
 }
 
-func (p *Parser) ReplaceEnum(ts *c.EnumType, td *c.EnumType) {
-	for _, enums := range p.EnumTags {
-		for i := 0; i < len(enums); i++ {
-			if enums[i] == ts {
-				enums[i] = td
+func replaceEnumsInSlice(enums []*c.EnumType, typeRemap map[c.Type]c.Type) {
+	for i := 0; i < len(enums); i++ {
+		t1, ok := typeRemap[enums[i]]
+		if ok {
+			if t1 == nil {
+				enums[i] = nil
+			} else {
+				enums[i] = t1.(*c.EnumType)
 			}
 		}
 	}
-	for i := 0; i < len(p.Enums); i++ {
-		if p.Enums[i] == ts {
-			p.Enums[i] = td
-		}
+}
+
+// ReplaceEnums replaces types with another in lists within parser
+// It does not replace use of the enum in other types
+func (p *Parser) ReplaceEnums(typeRemap map[c.Type]c.Type) {
+	for _, enums := range p.EnumTags {
+		replaceEnumsInSlice(enums, typeRemap)
 	}
+	replaceEnumsInSlice(p.Enums, typeRemap)
 }
 
 func rmNilEnumsFromSlice(enums []*c.EnumType) []*c.EnumType {
