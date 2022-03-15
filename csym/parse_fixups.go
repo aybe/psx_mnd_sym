@@ -98,7 +98,33 @@ func (p *Parser) removeEnumsDuplicates() {
 
 // replaceUsedSubtypesInType remaps sub-types within the Type interface.
 func replaceUsedSubtypesInType(t c.Type, typeRemap map[c.Type]c.Type) {
-	//TODO cast to specific type and replace the uses inside as well
+	switch tp := t.(type) {
+	case *c.PointerType:
+		t1, ok := typeRemap[tp.Elem]
+		if ok {
+			tp.Elem = t1
+		}
+		replaceUsedSubtypesInType(tp.Elem, typeRemap)
+	case *c.ArrayType:
+		t1, ok := typeRemap[tp.Elem]
+		if ok {
+			tp.Elem = t1
+		}
+		replaceUsedSubtypesInType(tp.Elem, typeRemap)
+	case *c.FuncType:
+		t1, ok := typeRemap[tp.RetType]
+		if ok {
+			tp.RetType = t1
+		}
+		replaceUsedSubtypesInType(tp.RetType, typeRemap)
+		for i := 0; i < len(tp.Params); i++ {
+			replaceUsedTypesInVar(&tp.Params[i].Var, typeRemap)
+		}
+	case *c.UnionType:
+		for i := 0; i < len(tp.Fields); i++ {
+			replaceUsedTypesInVar(&tp.Fields[i].Var, typeRemap)
+		}
+	}
 }
 
 func replaceUsedTypesInVar(v *c.Var, typeRemap map[c.Type]c.Type) {
@@ -106,7 +132,7 @@ func replaceUsedTypesInVar(v *c.Var, typeRemap map[c.Type]c.Type) {
 	if ok {
 		v.Type = t1
 	}
-	 replaceUsedSubtypesInType(v.Type, typeRemap)
+	replaceUsedSubtypesInType(v.Type, typeRemap)
 }
 
 func (p *Parser) replaceUsedTypesInStructs(typeRemap map[c.Type]c.Type) {
@@ -133,7 +159,7 @@ func (p *Parser) replaceUsedTypesInTypedefs(typeRemap map[c.Type]c.Type) {
 	for i := 0; i < len(p.Typedefs); i++ {
 		t := p.Typedefs[i]
 		// Do not replace the typedef itself, only uses of types within
-		 replaceUsedSubtypesInType(t, typeRemap)
+		replaceUsedSubtypesInType(t, typeRemap)
 	}
 }
 
