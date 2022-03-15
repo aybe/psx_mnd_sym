@@ -287,8 +287,8 @@ func UniqueName(name string, addr uint32) string {
 }
 
 // UniqueTag returns a unique tag based on the given tag and duplicate index.
-func UniqueTag(tag string, idx int) string {
-	return fmt.Sprintf("%s_duplicate_%d", tag, idx)
+func UniqueTag(tag string, typ string, idx int) string {
+	return fmt.Sprintf("%s_duplicate_%s%d", tag, typ, idx)
 }
 
 // UniqueVarName returns a unique variable name based on the given variable
@@ -316,7 +316,7 @@ func UniqueStructTag(structTags map[string][]*c.StructType, t *c.StructType) str
 		if !ok { break } // the tag is unique - done
 		k := SliceIndex(len(structs), func(i int) bool { return structs[i] == t })
 		if k < 0 { k = len(structs) }
-		newTag = UniqueTag(newTag, k)
+		newTag = UniqueTag(newTag, "s", k)
 	}
 	return newTag
 }
@@ -330,7 +330,7 @@ func UniqueUnionTag(unionTags map[string][]*c.UnionType, t *c.UnionType) string 
 		if !ok { break } // the tag is unique - done
 		k := SliceIndex(len(unions), func(i int) bool { return unions[i] == t })
 		if k < 0 { k = len(unions) }
-		newTag = UniqueTag(newTag, k)
+		newTag = UniqueTag(newTag, "u", k)
 	}
 	return newTag
 }
@@ -344,7 +344,7 @@ func UniqueEnumTag(EnumTags map[string][]*c.EnumType, t *c.EnumType) string {
 		if !ok { break } // the tag is unique - done
 		k := SliceIndex(len(enums), func(i int) bool { return enums[i] == t })
 		if k < 0 { k = len(enums) }
-		newTag = UniqueTag(newTag, k)
+		newTag = UniqueTag(newTag, "e", k)
 	}
 	return newTag
 }

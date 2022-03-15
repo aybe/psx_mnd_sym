@@ -235,20 +235,6 @@ func (p *Parser) parseTypedef(t sym.Type, dims []uint32, tag, name string) {
 
 // ### [ Helper functions ] ####################################################
 
-// Duplicate tag format string.
-const duplicateTagFormat = "%s_duplicate_%d"
-
-// uniqueTag returns a unique tag based on the given tag and set of present
-// tags.
-func uniqueTag(tag string, tags map[string]bool) string {
-	newTag := tag
-	for i := 0; tags[newTag]; i++ {
-		newTag = fmt.Sprintf(duplicateTagFormat, tag, i)
-	}
-	tags[newTag] = true
-	return newTag
-}
-
 // Duplicate enum member format string.
 const duplicateEnumFormat = "%s_DUPLICATE_%d"
 
