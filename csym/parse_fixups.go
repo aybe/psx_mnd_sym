@@ -17,23 +17,29 @@ func (p *Parser) RemoveDuplicateTypes() {
 
 // removeStructsDuplicates goes through parsed symbols and marks exact duplicates.
 func (p *Parser) removeStructsDuplicates() {
-	n := 0
+	// Create a type replacing map
+	typeRemap := make(map[c.Type]c.Type)
 	for _, structs := range p.StructTags {
 		for i := 0; i < len(structs); i++ {
 			t1 := structs[i]
-			if t1 == nil { continue }
+			if _, ok := typeRemap[t1]; ok { continue }
 			for k := i+1; k < len(structs); k++ {
 				t2 := structs[k]
+				if _, ok := typeRemap[t2]; ok { continue }
 				if !reflect.DeepEqual(t2, t1) { continue }
-				// Replace the pointers with nil, to avoid reordering too often
-				p.ReplaceStruct(t2, nil)
-				n++
+				typeRemap[t2] = t1
 			}
 		}
-		// Remove nil items
-		p.RmNilStructs()
 	}
-	if p.opts.Verbose { fmt.Printf("Removed structs: %d\n", n) }
+	// Replace the pointers in uses of types within other types and declarations
+	p.ReplaceUsedTypes(typeRemap)
+	// Replace the pointers on main lists with nil, then remove nil items
+	for t2, _ := range typeRemap {
+		typeRemap[t2] = nil
+	}
+	p.ReplaceStructs(typeRemap)
+	p.RmNilStructs()
+	if p.opts.Verbose { fmt.Printf("Removed structs: %d\n", len(typeRemap)) }
 }
 
 // removeUnionsDuplicates goes through parsed symbols and marks exact duplicates.
@@ -76,6 +82,9 @@ func (p *Parser) removeEnumsDuplicates() {
 		p.RmNilEnums()
 	}
 	if p.opts.Verbose { fmt.Printf("Removed enums: %d\n", n) }
+}
+
+func (p *Parser) ReplaceUsedTypes(typeRemap map[c.Type]c.Type) {
 }
 
 // MakeNamesUnique goes through parsed symbols and renames duplicate names.

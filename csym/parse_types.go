@@ -280,20 +280,26 @@ func (p *Parser) AddStruct(t *c.StructType) *c.StructType {
 	return t
 }
 
-// ReplaceStruct replaces type with another in lists within parser
-func (p *Parser) ReplaceStruct(ts *c.StructType, td *c.StructType) {
-	for _, structs := range p.StructTags {
-		for i := 0; i < len(structs); i++ {
-			if structs[i] == ts {
-				structs[i] = td
+func replaceStructsInSlice(structs []*c.StructType, typeRemap map[c.Type]c.Type) {
+	for i := 0; i < len(structs); i++ {
+		t1, ok := typeRemap[structs[i]]
+		if ok {
+			if t1 == nil {
+				structs[i] = nil
+			} else {
+				structs[i] = t1.(*c.StructType)
 			}
 		}
 	}
-	for i := 0; i < len(p.Structs); i++ {
-		if p.Structs[i] == ts {
-			p.Structs[i] = td
-		}
+}
+
+// ReplaceStructs replaces types with another in lists within parser
+// It does not replace use of the struct in other types
+func (p *Parser) ReplaceStructs(typeRemap map[c.Type]c.Type) {
+	for _, structs := range p.StructTags {
+		replaceStructsInSlice(structs, typeRemap)
 	}
+	replaceStructsInSlice(p.Structs, typeRemap)
 }
 
 func rmNilStructsFromSlice(structs []*c.StructType) []*c.StructType {
