@@ -84,7 +84,65 @@ func (p *Parser) removeEnumsDuplicates() {
 	if p.opts.Verbose { fmt.Printf("Removed enums: %d\n", n) }
 }
 
+func replaceUsedTypesInVar(v *c.Var, typeRemap map[c.Type]c.Type) {
+	t1, ok := typeRemap[v.Type]
+	if ok {
+		v.Type = t1
+	}
+}
+
+func (p *Parser) replaceUsedTypesInStructs(typeRemap map[c.Type]c.Type) {
+	for i := 0; i < len(p.Structs); i++ {
+		t := p.Structs[i]
+		for k := 0; k < len(t.Fields); k++ {
+			replaceUsedTypesInVar(&t.Fields[k].Var, typeRemap)
+		}
+		for k := 0; k < len(t.Methods); k++ {
+			replaceUsedTypesInVar(&t.Methods[k].Var, typeRemap)
+		}
+	}
+}
+
+func (p *Parser) replaceUsedTypesInUnions(typeRemap map[c.Type]c.Type) {
+	for i := 0; i < len(p.Unions); i++ {
+		t := p.Unions[i]
+		for k := 0; k < len(t.Fields); k++ {
+			replaceUsedTypesInVar(&t.Fields[k].Var, typeRemap)
+		}
+	}
+}
+
+func (p *Parser) replaceUsedVarTypesInInOverlay(overlay *Overlay, typeRemap map[c.Type]c.Type) {
+	for i := 0; i < len(overlay.Vars); i++ {
+		t := overlay.Vars[i]
+		replaceUsedTypesInVar(&t.Var, typeRemap)
+	}
+}
+
+func (p *Parser) replaceUsedFuncTypesInInOverlay(overlay *Overlay, typeRemap map[c.Type]c.Type) {
+	for i := 0; i < len(overlay.Funcs); i++ {
+		t := overlay.Funcs[i]
+		replaceUsedTypesInVar(&t.Var, typeRemap)
+		for k := 0; k < len(t.Blocks); k++ {
+			b := t.Blocks[k]
+			for n := 0; n < len(b.Locals); n++ {
+				replaceUsedTypesInVar(&b.Locals[n].Var, typeRemap)
+			}
+		}
+	}
+}
+
 func (p *Parser) ReplaceUsedTypes(typeRemap map[c.Type]c.Type) {
+	p.replaceUsedTypesInStructs(typeRemap)
+	p.replaceUsedTypesInUnions(typeRemap)
+	// Default overlay
+	p.replaceUsedVarTypesInInOverlay(p.Overlay, typeRemap)
+	p.replaceUsedFuncTypesInInOverlay(p.Overlay, typeRemap)
+	// Other overlays
+	for _, overlay := range p.Overlays {
+		p.replaceUsedVarTypesInInOverlay(overlay, typeRemap)
+		p.replaceUsedFuncTypesInInOverlay(overlay, typeRemap)
+	}
 }
 
 // MakeNamesUnique goes through parsed symbols and renames duplicate names.
