@@ -19,7 +19,7 @@ import (
 // usage prints usage information.
 func usage() {
 	const use = `
-Convert Playstation 1 MND/SYM files to C headers (*.sym -> *.h) and scripts for importing symbol information into IDA.
+Convert PlayStation 1 MND/SYM files to C headers and/or Python scripts for importing symbol information into IDA.
 `
 	fmt.Println(use[1:])
 	flag.PrintDefaults()
