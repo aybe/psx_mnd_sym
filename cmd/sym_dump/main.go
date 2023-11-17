@@ -55,6 +55,12 @@ func main() {
 	flag.BoolVar(&opts.Verbose, "v", false, "show verbose messages")
 	flag.Usage = usage
 	flag.Parse()
+
+	if flag.NArg() == 0 {
+		flag.Usage()
+		return
+	}
+
 	if merge && outputIDA {
 		log.Fatalf("IDA output not supported in merge mode, as the scripts would be unusable.")
 	}
