@@ -4,6 +4,29 @@ package sym
 
 import "strconv"
 
+func _() {
+	// An "invalid array index" compiler error signifies that the constant values have changed.
+	// Re-run the stringer command to generate them again.
+	var x [1]struct{}
+	_ = x[ClassAUTO-1]
+	_ = x[ClassEXT-2]
+	_ = x[ClassSTAT-3]
+	_ = x[ClassREG-4]
+	_ = x[ClassLABEL-6]
+	_ = x[ClassMOS-8]
+	_ = x[ClassARG-9]
+	_ = x[ClassSTRTAG-10]
+	_ = x[ClassMOU-11]
+	_ = x[ClassUNTAG-12]
+	_ = x[ClassTPDEF-13]
+	_ = x[ClassENTAG-15]
+	_ = x[ClassMOE-16]
+	_ = x[ClassREGPARM-17]
+	_ = x[ClassFIELD-18]
+	_ = x[ClassEOS-102]
+	_ = x[Class103-103]
+}
+
 const (
 	_Class_name_0 = "AUTOEXTSTATREG"
 	_Class_name_1 = "LABEL"

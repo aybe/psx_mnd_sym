@@ -4,6 +4,17 @@ package c
 
 import "strconv"
 
+func _() {
+	// An "invalid array index" compiler error signifies that the constant values have changed.
+	// Re-run the stringer command to generate them again.
+	var x [1]struct{}
+	_ = x[Auto-1]
+	_ = x[Extern-2]
+	_ = x[Static-3]
+	_ = x[Register-4]
+	_ = x[Typedef-5]
+}
+
 const _StorageClass_name = "autoexternstaticregistertypedef"
 
 var _StorageClass_index = [...]uint8{0, 4, 10, 16, 24, 31}

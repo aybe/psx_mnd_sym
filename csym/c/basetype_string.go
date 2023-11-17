@@ -4,9 +4,26 @@ package c
 
 import "strconv"
 
-const _BaseType_name = "voidcharshortintlongunsigned charunsigned shortunsigned intunsigned long"
+func _() {
+	// An "invalid array index" compiler error signifies that the constant values have changed.
+	// Re-run the stringer command to generate them again.
+	var x [1]struct{}
+	_ = x[Void-1]
+	_ = x[Char-2]
+	_ = x[Short-3]
+	_ = x[Int-4]
+	_ = x[Long-5]
+	_ = x[Float-6]
+	_ = x[Double-7]
+	_ = x[UChar-8]
+	_ = x[UShort-9]
+	_ = x[UInt-10]
+	_ = x[ULong-11]
+}
 
-var _BaseType_index = [...]uint8{0, 4, 8, 13, 16, 20, 33, 47, 59, 72}
+const _BaseType_name = "voidcharshortintlongfloatdoubleunsigned charunsigned shortunsigned intunsigned long"
+
+var _BaseType_index = [...]uint8{0, 4, 8, 13, 16, 20, 25, 31, 44, 58, 70, 83}
 
 func (i BaseType) String() string {
 	i -= 1

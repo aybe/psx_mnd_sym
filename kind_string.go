@@ -4,6 +4,30 @@ package sym
 
 import "strconv"
 
+func _() {
+	// An "invalid array index" compiler error signifies that the constant values have changed.
+	// Re-run the stringer command to generate them again.
+	var x [1]struct{}
+	_ = x[KindName1-1]
+	_ = x[KindName2-2]
+	_ = x[KindName5-5]
+	_ = x[KindName6-6]
+	_ = x[KindIncSLD-128]
+	_ = x[KindIncSLDByte-130]
+	_ = x[KindIncSLDWord-132]
+	_ = x[KindSetSLD-134]
+	_ = x[KindSetSLD2-136]
+	_ = x[KindEndSLD-138]
+	_ = x[KindFuncStart-140]
+	_ = x[KindFuncEnd-142]
+	_ = x[KindBlockStart-144]
+	_ = x[KindBlockEnd-146]
+	_ = x[KindDef-148]
+	_ = x[KindDef2-150]
+	_ = x[KindOverlay-152]
+	_ = x[KindSetOverlay-154]
+}
+
 const _Kind_name = "125680828486888a8c8e90929496overlayset overlay"
 
 var _Kind_map = map[Kind]string{

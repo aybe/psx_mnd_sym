@@ -4,6 +4,15 @@ package sym
 
 import "strconv"
 
+func _() {
+	// An "invalid array index" compiler error signifies that the constant values have changed.
+	// Re-run the stringer command to generate them again.
+	var x [1]struct{}
+	_ = x[ModPointer-1]
+	_ = x[ModFunction-2]
+	_ = x[ModArray-3]
+}
+
 const _Mod_name = "PTRFCNARY"
 
 var _Mod_index = [...]uint8{0, 3, 6, 9}

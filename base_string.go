@@ -4,6 +4,28 @@ package sym
 
 import "strconv"
 
+func _() {
+	// An "invalid array index" compiler error signifies that the constant values have changed.
+	// Re-run the stringer command to generate them again.
+	var x [1]struct{}
+	_ = x[BaseNull-0]
+	_ = x[BaseVoid-1]
+	_ = x[BaseChar-2]
+	_ = x[BaseShort-3]
+	_ = x[BaseInt-4]
+	_ = x[BaseLong-5]
+	_ = x[BaseFloat-6]
+	_ = x[BaseDouble-7]
+	_ = x[BaseStruct-8]
+	_ = x[BaseUnion-9]
+	_ = x[BaseEnum-10]
+	_ = x[BaseMOE-11]
+	_ = x[BaseUChar-12]
+	_ = x[BaseUShort-13]
+	_ = x[BaseUInt-14]
+	_ = x[BaseULong-15]
+}
+
 const _Base_name = "NULLVOIDCHARSHORTINTLONGFLOATDOUBLESTRUCTUNIONENUMMOEUCHARUSHORTUINTULONG"
 
 var _Base_index = [...]uint8{0, 4, 8, 12, 17, 20, 24, 29, 35, 41, 46, 50, 53, 58, 64, 68, 73}
