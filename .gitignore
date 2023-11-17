@@ -3,3 +3,5 @@
 *.txt
 *.o
 *.py
+cmd/sym_dump/_dump_
+.vscode/launch.json
