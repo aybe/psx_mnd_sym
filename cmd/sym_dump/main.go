@@ -67,10 +67,12 @@ func main() {
 		if err != nil {
 			log.Fatalf("%+v", err)
 		}
-		switch {
-		case outputC, outputIDA:
+
+		var p *csym.Parser
+
+		if outputC || outputIDA {
 			// Parse C types and declarations.
-			p := csym.NewParser(&opts)
+			p = csym.NewParser(&opts)
 			if merge {
 				ps = append(ps, p)
 			}
@@ -78,30 +80,30 @@ func main() {
 			p.ParseDecls(f.Syms)
 			p.RemoveDuplicateTypes()
 			p.MakeNamesUnique()
-			// Output once for each files if not in merge mode.
-			if !merge {
-				if err := dump(p, outputDir, outputC, outputTypes, outputIDA, splitSrc, merge); err != nil {
-					log.Fatalf("%+v", err)
-				}
-			}
-		case outputTypes:
+		}
+
+		if outputTypes {
 			// Parse C types.
-			p := csym.NewParser(&opts)
+			p = csym.NewParser(&opts)
 			if merge {
 				ps = append(ps, p)
 			}
 			p.ParseTypes(f.Syms)
+		}
+
+		if outputC || outputIDA || outputTypes {
 			// Output once for each files if not in merge mode.
 			if !merge {
 				if err := dump(p, outputDir, outputC, outputTypes, outputIDA, splitSrc, merge); err != nil {
 					log.Fatalf("%+v", err)
 				}
 			}
-		default:
-			// Output in Psy-Q DUMPSYM.EXE format.
-			// Note, we never merge the Psy-Q output.
-			fmt.Print(f)
+			continue
 		}
+
+		// Output in Psy-Q DUMPSYM.EXE format.
+		// Note, we never merge the Psy-Q output.
+		fmt.Print(f)
 	}
 	// Output the merge of all files if in merge mode.
 	if merge {
@@ -331,8 +333,8 @@ func addUniqueEnums(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int, 
 // dump dumps the declarations of the parser to the given output directory, in
 // the format specified.
 func dump(p *csym.Parser, outputDir string, outputC, outputTypes, outputIDA, splitSrc, merge bool) error {
-	switch {
-	case outputC:
+
+	if outputC {
 		// Output C types and declarations.
 		if err := initOutputDir(outputDir); err != nil {
 			return errors.WithStack(err)
@@ -349,7 +351,9 @@ func dump(p *csym.Parser, outputDir string, outputC, outputTypes, outputIDA, spl
 				return errors.WithStack(err)
 			}
 		}
-	case outputTypes:
+	}
+
+	if outputTypes {
 		// Output C types.
 		if err := initOutputDir(outputDir); err != nil {
 			return errors.WithStack(err)
@@ -357,7 +361,9 @@ func dump(p *csym.Parser, outputDir string, outputC, outputTypes, outputIDA, spl
 		if err := dumpTypes(p, outputDir); err != nil {
 			return errors.WithStack(err)
 		}
-	case outputIDA:
+	}
+
+	if outputIDA {
 		// Output IDA scripts.
 		if err := initOutputDir(outputDir); err != nil {
 			return errors.WithStack(err)
@@ -380,7 +386,9 @@ func dump(p *csym.Parser, outputDir string, outputC, outputTypes, outputIDA, spl
 		if err := dumpTypes(p, outputDir); err != nil {
 			return errors.WithStack(err)
 		}
+
 	}
+
 	return nil
 }
 
