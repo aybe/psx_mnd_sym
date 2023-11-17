@@ -584,6 +584,10 @@ func (p *Parser) parseBase(base sym.Base, tag string) c.Type {
 		return c.Int
 	case sym.BaseLong:
 		return c.Long
+	case sym.BaseFloat:
+		return c.Float
+	case sym.BaseDouble:
+		return c.Double
 	case sym.BaseStruct:
 		return p.findStruct(tag, 0, false)
 	case sym.BaseUnion:

@@ -29,6 +29,8 @@ const (
 	Short                      // short
 	Int                        // int
 	Long                       // long
+	Float                      // float
+	Double                     // double
 	UChar                      // unsigned char
 	UShort                     // unsigned short
 	UInt                       // unsigned int
