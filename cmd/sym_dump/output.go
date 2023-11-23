@@ -8,10 +8,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pkg/errors"
-	"github.com/rickypai/natsort"
 	"github.com/mefistotelis/psx_mnd_sym/csym"
 	"github.com/mefistotelis/psx_mnd_sym/csym/c"
+	"github.com/pkg/errors"
+	"github.com/rickypai/natsort"
 )
 
 // --- [ Type definitions ] ----------------------------------------------------
