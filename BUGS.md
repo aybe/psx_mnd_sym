@@ -9,3 +9,4 @@ Non-exhaustive list of bugs/inconsistencies found so far:
     - NOTE: `types.h` still contains dupe typedefs when using `-c` or `-ida`
 - `-dir` must be `-dir=...` but will crash when there are quotes
 - `-src` alone does DUMPSYM behavior, it should fail and expect another parameter
+- non-sense typedefs, e.g. `typedef struct RotoShadow RotoShadow;`
