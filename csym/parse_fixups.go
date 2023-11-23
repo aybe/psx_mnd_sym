@@ -13,6 +13,27 @@ func (p *Parser) RemoveDuplicateTypes() {
 	p.removeStructsDuplicates()
 	p.removeUnionsDuplicates()
 	p.removeStructsDuplicates()
+	p.removeTypeDefsDuplicates()
+}
+
+func (p *Parser) removeTypeDefsDuplicates() {
+
+	dictionary := make(map[string]c.Type)
+
+	for _, element := range p.Typedefs {
+		key := element.String()
+		if dictionary[key] == nil {
+			dictionary[key] = element
+		}
+	}
+
+	array := make([]c.Type, 0, len(dictionary))
+
+	for _, element := range dictionary {
+		array = append(array, element)
+	}
+
+	p.Typedefs = array
 }
 
 // removeStructsDuplicates goes through parsed symbols and marks exact duplicates.
