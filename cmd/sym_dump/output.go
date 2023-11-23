@@ -259,6 +259,24 @@ func dumpIDAOverlay(overlay *csym.Overlay, outputDir string) error {
 		if _, err := fmt.Fprintf(w, "set_name(0x%08X, %q, SN_NOWARN)\n", f.Addr, f.Name); err != nil {
 			return errors.WithStack(err)
 		}
+		commentHeader := "[PSX-MND-SYM]"
+
+		comments := []string{
+			fmt.Sprintf("%s Function name = %s", commentHeader, f.Name),
+			fmt.Sprintf("%s Function signature = %s", commentHeader, f.Type),
+			fmt.Sprintf("%s Function address = %X", commentHeader, f.Addr),
+			fmt.Sprintf("%s Function file = %s", commentHeader, f.Path),
+			fmt.Sprintf("%s Function size = %X", commentHeader, f.Size),
+			fmt.Sprintf("%s Function line start = %d", commentHeader, f.LineStart),
+			fmt.Sprintf("%s Function line end = %d", commentHeader, f.LineEnd),
+			fmt.Sprintf("%s Function line count = %d", commentHeader, f.LineEnd-f.LineStart),
+		}
+
+		comment := strings.Join(comments, "\n")
+
+		if _, err := fmt.Fprintf(w, "set_func_cmt(0x%08X, %q, 0)\n", f.Addr, comment); err != nil {
+			return errors.WithStack(err)
+		}
 	}
 	for _, v := range overlay.Vars {
 		if _, err := fmt.Fprintf(w, "set_name(0x%08X, %q, SN_NOWARN)\n", v.Addr, v.Name); err != nil {
