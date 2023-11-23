@@ -1,9 +1,9 @@
 This fork has the following changes:
 
 - handle `float` and `double` types found in some games
-- output sentinel comments for external parsers
 - removal of duplicate typedefs
-- simplified, consolidated output for IDA
+- consolidated and improved output for IDA
+    - output sentinel comments for external parsers
 - general improvements (DRY/inconsistencies)
 
 The goal is to generate better sources out of this project's.
