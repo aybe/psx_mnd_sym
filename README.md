@@ -1,3 +1,13 @@
+This fork has the following changes:
+
+- handle `float` and `double` types found in some games
+- output sentinel comments for external parsers
+- removal of duplicate typedefs
+- simplified, consolidated output for IDA
+- general improvements (DRY/inconsistencies)
+
+The goal is to generate better sources out of this project's.
+
 # PSX MND/SYM parser in Golang
 
 [![Build Status](https://api.travis-ci.com/mefistotelis/psx_mnd_sym.svg)](https://app.travis-ci.com/github/mefistotelis/psx_mnd_sym)
