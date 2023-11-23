@@ -20,6 +20,8 @@ func (p *Parser) RemoveDuplicateTypes() {
 
 func (p *Parser) removeTypeDefsDuplicates() {
 
+	initial := len(p.Typedefs)
+
 	dictionary := make(map[string]c.Type)
 
 	for _, element := range p.Typedefs {
@@ -36,6 +38,10 @@ func (p *Parser) removeTypeDefsDuplicates() {
 	}
 
 	p.Typedefs = array
+
+	if p.opts.Verbose {
+		fmt.Printf("Removed typedefs: %d\n", initial-len(p.Typedefs))
+	}
 }
 
 // removeStructsDuplicates goes through parsed symbols and marks exact duplicates.
