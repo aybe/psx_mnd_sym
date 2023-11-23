@@ -346,6 +346,7 @@ func dump(p *csym.Parser, outputDir string, outputC, outputTypes, outputIDA, spl
 
 	if outputC {
 		// Output C types and declarations.
+		fmt.Println("Generating output for C...")
 		if err := dumpTypes(p, outputDir); err != nil {
 			return errors.WithStack(err)
 		}
@@ -362,6 +363,7 @@ func dump(p *csym.Parser, outputDir string, outputC, outputTypes, outputIDA, spl
 
 	if outputTypes {
 		// Output C types.
+		fmt.Println("Generating output for types...")
 		if err := dumpTypes(p, outputDir); err != nil {
 			return errors.WithStack(err)
 		}
@@ -369,6 +371,7 @@ func dump(p *csym.Parser, outputDir string, outputC, outputTypes, outputIDA, spl
 
 	if outputIDA {
 		// Output IDA scripts.
+		fmt.Println("Generating output for IDA...")
 		if err := dumpIDAScripts(p, outputDir); err != nil {
 			return errors.WithStack(err)
 		}
