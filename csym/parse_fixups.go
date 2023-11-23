@@ -12,7 +12,7 @@ func (p *Parser) RemoveDuplicateTypes() {
 	if p.opts.Verbose { fmt.Printf("Remove duplicate types...\n") }
 	p.removeStructsDuplicates()
 	p.removeUnionsDuplicates()
-	p.removeStructsDuplicates()
+	p.removeStructsDuplicates() // TODO/BUG: why is this needed?
 	p.removeTypeDefsDuplicates()
 }
 
