@@ -340,11 +340,12 @@ func addUniqueEnums(dst *csym.Parser, p *csym.Parser, pnum int, fakeCount *int, 
 // the format specified.
 func dump(p *csym.Parser, outputDir string, outputC, outputTypes, outputIDA, splitSrc, merge bool) error {
 
+	if err := initOutputDir(outputDir); err != nil {
+		return errors.WithStack(err)
+	}
+
 	if outputC {
 		// Output C types and declarations.
-		if err := initOutputDir(outputDir); err != nil {
-			return errors.WithStack(err)
-		}
 		if err := dumpTypes(p, outputDir); err != nil {
 			return errors.WithStack(err)
 		}
@@ -361,9 +362,6 @@ func dump(p *csym.Parser, outputDir string, outputC, outputTypes, outputIDA, spl
 
 	if outputTypes {
 		// Output C types.
-		if err := initOutputDir(outputDir); err != nil {
-			return errors.WithStack(err)
-		}
 		if err := dumpTypes(p, outputDir); err != nil {
 			return errors.WithStack(err)
 		}
@@ -371,9 +369,6 @@ func dump(p *csym.Parser, outputDir string, outputC, outputTypes, outputIDA, spl
 
 	if outputIDA {
 		// Output IDA scripts.
-		if err := initOutputDir(outputDir); err != nil {
-			return errors.WithStack(err)
-		}
 		if err := dumpIDAScripts(p, outputDir); err != nil {
 			return errors.WithStack(err)
 		}
