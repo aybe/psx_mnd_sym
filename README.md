@@ -8,6 +8,18 @@ This fork has the following changes:
 
 The goal is to generate better sources out of this project's.
 
+Preliminary instructions for IDA:
+
+(read original README first!)
+
+- generate the output files with `sym_dump -c -ida YOUR_FILE.SYM`
+- start on a fresh IDB
+- set compiler to GNU C++
+- add memory mappings (from, to, size) (https://www.romhacking.net/utilities/1165/)
+    - 0×00000000, 0×80000000, 0×00200000
+    - 0xA0000000, 0×80000000, 0×00200000
+- set segments permissions to R/W/X (avoid inlining/MEMORY access)
+
 # PSX MND/SYM parser in Golang
 
 [![Build Status](https://api.travis-ci.com/mefistotelis/psx_mnd_sym.svg)](https://app.travis-ci.com/github/mefistotelis/psx_mnd_sym)
