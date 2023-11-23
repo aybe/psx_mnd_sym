@@ -227,16 +227,6 @@ func dumpIDAScripts(p *csym.Parser, outputDir string) error {
 	return nil
 }
 
-// IDA script names.
-const (
-	// Scripts mapping addresses to identifiers.
-	idaIdentsName = "make_psx.py"
-	// Scripts adding function signatures to identifiers.
-	idaFuncsName = "set_funcs.py"
-	// Scripts adding global variable types to identifiers.
-	idaVarsName = "set_vars.py"
-)
-
 // dumpIDAOverlay outputs the declarations of the overlay to IDA scripts.
 func dumpIDAOverlay(overlay *csym.Overlay, outputDir string) error {
 	// Create scripts for mapping addresses to identifiers.
@@ -248,53 +238,53 @@ func dumpIDAOverlay(overlay *csym.Overlay, outputDir string) error {
 			return errors.WithStack(err)
 		}
 	}
-	identsPath := filepath.Join(dir, idaIdentsName)
-	fmt.Println("creating:", identsPath)
-	w, err := os.Create(identsPath)
+
+	writeIdaScript(overlay, dir, "make_psx.py",
+		writeIdaHeader,
+		writeIdaVariablesSignatures,
+		writeIdaVariablesNames,
+		writeIdaFunctionsSignatures,
+		writeIdaFunctionsNames)
+
+	return nil
+}
+
+type WriteIdaScriptHandler func(overlay *csym.Overlay, w *os.File) error
+
+func writeIdaScript(overlay *csym.Overlay, directory, fileName string, handlers ...WriteIdaScriptHandler) error {
+
+	path := filepath.Join(directory, fileName)
+
+	fmt.Println("creating file:", path)
+
+	w, err := os.Create(path)
+
 	if err != nil {
-		return errors.Wrapf(err, "unable to create declarations IDA script %q", identsPath)
-	}
-	defer w.Close()
-
-	if err := writeIdaFunctionsNames(w, overlay); err != nil {
-		return errors.WithStack(err)
-	}
-
-	if err := writeIdaVariablesNames(w, overlay); err != nil {
-		return errors.WithStack(err)
-	}
-
-	// Create scripts for adding function signatures to identifiers.
-	funcsPath := filepath.Join(dir, idaFuncsName)
-	fmt.Println("creating:", funcsPath)
-	w, err = os.Create(funcsPath)
-	if err != nil {
-		return errors.Wrapf(err, "unable to create function signatures IDA script %q", funcsPath)
-	}
-	defer w.Close()
-
-	if err := writeIdaFunctionsSignatures(w, overlay); err != nil {
-		return errors.WithStack(err)
-	}
-
-	// Create scripts adding global variable types to identifiers.
-	varsPath := filepath.Join(dir, idaVarsName)
-	fmt.Println("creating:", varsPath)
-	w, err = os.Create(varsPath)
-	if err != nil {
-		return errors.Wrapf(err, "unable to create global variables IDA script %q", varsPath)
+		return errors.Wrapf(err, "unable to create IDA script %q", path)
 	}
 
 	defer w.Close()
 
-	if err := writeIdaVariablesTypes(w, overlay); err != nil {
-		return errors.WithStack(err)
+	for _, handler := range handlers {
+		if err := handler(overlay, w); err != nil {
+			return errors.WithStack(err)
+		}
 	}
 
 	return nil
 }
 
-func writeIdaFunctionsNames(w *os.File, overlay *csym.Overlay) error {
+func writeIdaHeader(overlay *csym.Overlay, w *os.File) error {
+
+	x := `print("PSX: [Executing IDA script] " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))`
+
+	fmt.Fprintln(w, x)
+	fmt.Fprintln(w)
+
+	return nil
+}
+
+func writeIdaFunctionsNames(overlay *csym.Overlay, w *os.File) error {
 	fmt.Fprintln(w, "print(\"PSX: [Assigning functions names]\")")
 	fmt.Fprintln(w)
 
@@ -330,7 +320,7 @@ func writeIdaFunctionsNames(w *os.File, overlay *csym.Overlay) error {
 	return nil
 }
 
-func writeIdaVariablesNames(w *os.File, overlay *csym.Overlay) error {
+func writeIdaVariablesNames(overlay *csym.Overlay, w *os.File) error {
 	fmt.Fprintln(w, "print(\"PSX: [Assigning variables names]\")")
 	fmt.Fprintln(w)
 
@@ -345,7 +335,7 @@ func writeIdaVariablesNames(w *os.File, overlay *csym.Overlay) error {
 	return nil
 }
 
-func writeIdaFunctionsSignatures(w *os.File, overlay *csym.Overlay) error {
+func writeIdaFunctionsSignatures(overlay *csym.Overlay, w *os.File) error {
 	fmt.Fprintln(w, "print(\"PSX: [Assigning functions signatures]\")")
 	fmt.Fprintln(w)
 
@@ -364,7 +354,7 @@ func writeIdaFunctionsSignatures(w *os.File, overlay *csym.Overlay) error {
 	return nil
 }
 
-func writeIdaVariablesTypes(w *os.File, overlay *csym.Overlay) error {
+func writeIdaVariablesSignatures(overlay *csym.Overlay, w *os.File) error {
 	fmt.Fprintln(w, "print(\"PSX: [Assigning variables types]\")")
 	fmt.Fprintln(w)
 
