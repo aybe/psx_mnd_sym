@@ -240,11 +240,12 @@ func dumpIDAOverlay(overlay *csym.Overlay, outputDir string) error {
 	}
 
 	writeIdaScript(overlay, dir, "make_psx.py",
-		writeIdaHeader,
+		writeIdaPreamble,
 		writeIdaVariablesSignatures,
 		writeIdaVariablesNames,
 		writeIdaFunctionsSignatures,
-		writeIdaFunctionsNames)
+		writeIdaFunctionsNames,
+		writeIdaPostamble)
 
 	return nil
 }
@@ -274,18 +275,25 @@ func writeIdaScript(overlay *csym.Overlay, directory, fileName string, handlers 
 	return nil
 }
 
-func writeIdaHeader(overlay *csym.Overlay, w *os.File) error {
+func writeIdaPreamble(overlay *csym.Overlay, w *os.File) error {
 
-	x := `print("PSX: [Executing IDA script] " + datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))`
-
-	fmt.Fprintln(w, x)
+	fmt.Fprintln(w, `print("PSX: [Executing IDA script] started.")`)
 	fmt.Fprintln(w)
 
 	return nil
 }
 
+func writeIdaPostamble(overlay *csym.Overlay, w *os.File) error {
+
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, `print("PSX: [Executing IDA script] complete.")`)
+
+	return nil
+}
+
 func writeIdaFunctionsNames(overlay *csym.Overlay, w *os.File) error {
-	fmt.Fprintln(w, "print(\"PSX: [Assigning functions names]\")")
+
+	fmt.Fprintln(w, `print("PSX: [Assigning functions names] started.")`)
 	fmt.Fprintln(w)
 
 	for _, f := range overlay.Funcs {
@@ -314,14 +322,14 @@ func writeIdaFunctionsNames(overlay *csym.Overlay, w *os.File) error {
 		fmt.Fprintln(w)
 	}
 
-	fmt.Fprintln(w, "print(\"PSX: [Assigning functions names] complete.\")")
-	fmt.Fprintln(w)
-	fmt.Fprintln(w)
+	fmt.Fprintln(w, `print("PSX: [Assigning functions names] complete.")`)
+
 	return nil
 }
 
 func writeIdaVariablesNames(overlay *csym.Overlay, w *os.File) error {
-	fmt.Fprintln(w, "print(\"PSX: [Assigning variables names]\")")
+
+	fmt.Fprintln(w, `print("PSX: [Assigning variables names] started.")`)
 	fmt.Fprintln(w)
 
 	for _, v := range overlay.Vars {
@@ -331,12 +339,14 @@ func writeIdaVariablesNames(overlay *csym.Overlay, w *os.File) error {
 	}
 
 	fmt.Fprintln(w)
-	fmt.Fprintln(w, "print(\"PSX: [Assigning variables names] complete.\")")
+	fmt.Fprintln(w, `print("PSX: [Assigning variables names] complete.")`)
+
 	return nil
 }
 
 func writeIdaFunctionsSignatures(overlay *csym.Overlay, w *os.File) error {
-	fmt.Fprintln(w, "print(\"PSX: [Assigning functions signatures]\")")
+
+	fmt.Fprintln(w, `print("PSX: [Assigning functions signatures] started.")`)
 	fmt.Fprintln(w)
 
 	for _, f := range overlay.Funcs {
@@ -350,12 +360,14 @@ func writeIdaFunctionsSignatures(overlay *csym.Overlay, w *os.File) error {
 		fmt.Fprintln(w)
 	}
 
-	fmt.Fprintln(w, "print(\"PSX: [Assigning functions signatures] complete.\")")
+	fmt.Fprintln(w, `print("PSX: [Assigning functions signatures] complete.")`)
+
 	return nil
 }
 
 func writeIdaVariablesSignatures(overlay *csym.Overlay, w *os.File) error {
-	fmt.Fprintln(w, "print(\"PSX: [Assigning variables types]\")")
+
+	fmt.Fprintln(w, `print("PSX: [Assigning variables types] started.")`)
 	fmt.Fprintln(w)
 
 	for _, v := range overlay.Vars {
@@ -369,7 +381,8 @@ func writeIdaVariablesSignatures(overlay *csym.Overlay, w *os.File) error {
 		fmt.Fprintln(w)
 	}
 
-	fmt.Fprintln(w, "print(\"PSX: [Assigning variables types] complete.\")")
+	fmt.Fprintln(w, `print("PSX: [Assigning variables types] complete.")`)
+
 	return nil
 }
 
