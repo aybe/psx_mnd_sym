@@ -256,6 +256,45 @@ func dumpIDAOverlay(overlay *csym.Overlay, outputDir string) error {
 	}
 	defer w.Close()
 
+	if err := writeIdaFunctionsNames(w, overlay); err != nil {
+		return errors.WithStack(err)
+	}
+
+	if err := writeIdaVariablesNames(w, overlay); err != nil {
+		return errors.WithStack(err)
+	}
+
+	// Create scripts for adding function signatures to identifiers.
+	funcsPath := filepath.Join(dir, idaFuncsName)
+	fmt.Println("creating:", funcsPath)
+	w, err = os.Create(funcsPath)
+	if err != nil {
+		return errors.Wrapf(err, "unable to create function signatures IDA script %q", funcsPath)
+	}
+	defer w.Close()
+
+	if err := writeIdaFunctionsSignatures(w, overlay); err != nil {
+		return errors.WithStack(err)
+	}
+
+	// Create scripts adding global variable types to identifiers.
+	varsPath := filepath.Join(dir, idaVarsName)
+	fmt.Println("creating:", varsPath)
+	w, err = os.Create(varsPath)
+	if err != nil {
+		return errors.Wrapf(err, "unable to create global variables IDA script %q", varsPath)
+	}
+
+	defer w.Close()
+
+	if err := writeIdaVariablesTypes(w, overlay); err != nil {
+		return errors.WithStack(err)
+	}
+
+	return nil
+}
+
+func writeIdaFunctionsNames(w *os.File, overlay *csym.Overlay) error {
 	fmt.Fprintln(w, "print(\"PSX: [Assigning functions names]\")")
 	fmt.Fprintln(w)
 
@@ -288,7 +327,10 @@ func dumpIDAOverlay(overlay *csym.Overlay, outputDir string) error {
 	fmt.Fprintln(w, "print(\"PSX: [Assigning functions names] complete.\")")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w)
+	return nil
+}
 
+func writeIdaVariablesNames(w *os.File, overlay *csym.Overlay) error {
 	fmt.Fprintln(w, "print(\"PSX: [Assigning variables names]\")")
 	fmt.Fprintln(w)
 
@@ -300,16 +342,10 @@ func dumpIDAOverlay(overlay *csym.Overlay, outputDir string) error {
 
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "print(\"PSX: [Assigning variables names] complete.\")")
+	return nil
+}
 
-	// Create scripts for adding function signatures to identifiers.
-	funcsPath := filepath.Join(dir, idaFuncsName)
-	fmt.Println("creating:", funcsPath)
-	w, err = os.Create(funcsPath)
-	if err != nil {
-		return errors.Wrapf(err, "unable to create function signatures IDA script %q", funcsPath)
-	}
-	defer w.Close()
-
+func writeIdaFunctionsSignatures(w *os.File, overlay *csym.Overlay) error {
 	fmt.Fprintln(w, "print(\"PSX: [Assigning functions signatures]\")")
 	fmt.Fprintln(w)
 
@@ -325,17 +361,10 @@ func dumpIDAOverlay(overlay *csym.Overlay, outputDir string) error {
 	}
 
 	fmt.Fprintln(w, "print(\"PSX: [Assigning functions signatures] complete.\")")
+	return nil
+}
 
-	// Create scripts adding global variable types to identifiers.
-	varsPath := filepath.Join(dir, idaVarsName)
-	fmt.Println("creating:", varsPath)
-	w, err = os.Create(varsPath)
-	if err != nil {
-		return errors.Wrapf(err, "unable to create global variables IDA script %q", varsPath)
-	}
-
-	defer w.Close()
-
+func writeIdaVariablesTypes(w *os.File, overlay *csym.Overlay) error {
 	fmt.Fprintln(w, "print(\"PSX: [Assigning variables types]\")")
 	fmt.Fprintln(w)
 
@@ -351,7 +380,6 @@ func dumpIDAOverlay(overlay *csym.Overlay, outputDir string) error {
 	}
 
 	fmt.Fprintln(w, "print(\"PSX: [Assigning variables types] complete.\")")
-
 	return nil
 }
 
