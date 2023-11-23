@@ -256,7 +256,7 @@ func writeIdaScript(overlay *csym.Overlay, directory, fileName string, handlers 
 
 	path := filepath.Join(directory, fileName)
 
-	fmt.Println("creating file:", path)
+	fmt.Println("creating:", path)
 
 	w, err := os.Create(path)
 
