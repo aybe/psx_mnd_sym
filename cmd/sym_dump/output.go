@@ -115,18 +115,29 @@ func dumpOverlay(w io.Writer, overlay *csym.Overlay) error {
 			return errors.WithStack(err)
 		}
 	}
+
 	// Print variable declarations.
+	fmt.Fprintln(w, "// [PSX-MND-SYM] Variables (begin)")
+	fmt.Fprintln(w)
 	for _, v := range overlay.Vars {
 		if _, err := fmt.Fprintf(w, "%s;\n\n", v.Def()); err != nil {
 			return errors.WithStack(err)
 		}
 	}
+	fmt.Fprintln(w, "// [PSX-MND-SYM] Variables (end)")
+
+	fmt.Fprintln(w)
+
 	// Print function declarations.
+	fmt.Fprintln(w, "// [PSX-MND-SYM] Functions (begin)")
+	fmt.Fprintln(w)
 	for _, f := range overlay.Funcs {
 		if _, err := fmt.Fprintf(w, "%s\n\n", f.Def()); err != nil {
 			return errors.WithStack(err)
 		}
 	}
+	fmt.Fprintln(w, "// [PSX-MND-SYM] Functions (end)")
+
 	return nil
 }
 
