@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        ".lutignore": "ignore",
+        "defs.h": "c",
+        "sles_001.15.h": "c"
+    }
+}
